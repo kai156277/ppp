@@ -16,9 +16,9 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    o_date.cpp \
-    file_read.cpp
+    o_read.cpp \
+    o_date.cpp
 
 HEADERS += \
-    o_date.h \
-    file_read.h
+    o_read.h \
+    o_date.h
