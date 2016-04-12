@@ -350,10 +350,10 @@ void file_read::ppp_sp3_read(QString file_path, sp3_file &sp3)
     heard_date.minute     = readString.mid(16,3).toInt();
     heard_date.second     = readString.mid(19,12).toDouble();
     heard_date.number_of_epoch = readString.mid(31,8).toInt();
-    heard_date.data_use   = readString.mid(39,6);
-    heard_date.coordinate_system = readString.mid(45,6);
-    heard_date.orbit_type = readString.mid(51,4);
-    heard_date.agency     = readString.mid(55,5);
+    heard_date.data_use   = readString.mid(39,6).simplified();
+    heard_date.coordinate_system = readString.mid(45,6).simplified();
+    heard_date.orbit_type = readString.mid(51,4).simplified();
+    heard_date.agency     = readString.mid(55,5).simplified();
 
     /*##*/
     readString = read.readLine();

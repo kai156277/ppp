@@ -95,9 +95,19 @@ class o_sate_date
 public:
     o_sate_date();
     QString satellite_infomation;
-    /*vector中容器的数据顺序为P1,P2,P5,L1,L2,L5。缺省值为0 */
+    /*
+     * GPS--------P1,P2,P5,L1,L2,L5
+     * GLONASS----G1,G2,G3,L1,L2,L3
+     * Galileo----E1,E5a,E5b,E5,E6,L1,L5a,L5b,L5,L6
+     * SBAS-------P1,P5,L1,L5
+     * QZSS-------P1,P2,P5,P6,L1,L2,L5,L6
+     * BDS--------B1,B2,B3,L1,L2,L3
+     * 缺省值为0
+     *
+     */
     QVector<double> satellite_observation_value;
-    /*容器最大为6*/
+    QVector<int> satellite_LLI;
+    QVector<int> satellite_signal_strength;
 };
 
 class o_epoch_date
