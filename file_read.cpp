@@ -532,29 +532,26 @@ void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
         info.minute     = readString.mid(21,3).toInt();
         info.second     = readString.mid(24,10).toDouble();
         info.number_of_data = readString.mid(34,6).toInt();
-        bool ok = true;
         if(info.number_of_data<=2)
         {
             for(int i = 0; i<info.number_of_data; i++)
             {
-                info.record.push_back(readString.mid(40+20*i,20).toDouble(&ok));
+                info.record.push_back(readString.mid(40+20*i,20).toDouble());
             }
         }
         else
         {
             for(int i = 0; i<2; i++)
             {
-                info.record.push_back(readString.mid(40+20*i,20).toDouble(&ok));
+                info.record.push_back(readString.mid(40+20*i,20).toDouble());
             }
             for(int i = 2; i<info.number_of_data; i++)
             {
-                info.record.push_back(readString.mid(20*i,20).toDouble(&ok));
+                info.record.push_back(readString.mid(20*i,20).toDouble());
             }
         }
         clock.file.push_back(info);
     }while(!read.atEnd());
-
-    int i= 0;
 }
 
 void file_read::phase_matching(const QVector<sys_record> &match_list, system_signal &sys_list)

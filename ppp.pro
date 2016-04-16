@@ -20,10 +20,14 @@ SOURCES += main.cpp \
     o_date.cpp \
     file_read.cpp \
     sp3_date.cpp \
-    clock_date.cpp
+    clock_date.cpp \
+    math_function.cpp \
+    matching.cpp
 
 HEADERS += \
     o_date.h \
     file_read.h \
     sp3_date.h \
-    clock_date.h
+    clock_date.h \
+    math_function.h \
+    matching.h
