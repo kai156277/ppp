@@ -38,8 +38,8 @@ public:
     /**/
 
     /*# OF SOLN STA / TRF*/
-    int satation_num;
-    QString satation_reference_frame;
+    int reference_num;
+    QString reference_frame;
 
     /*SOLN STA NAME / NUM*/
     QVector<station_infomation> satation_info;
@@ -64,7 +64,7 @@ public:
     int minute;
     double second;
     int number_of_data;
-    QVector<double> info;
+    QVector<double> record;
 };
 
 class clock_date

@@ -452,10 +452,109 @@ void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
     }
     QTextStream read( &ppp_clock_file );
     QString readString;
+
+    /*read heard*/
+
+    clock_date_heard clock_heard;
     do
     {
-
+        readString = read.readLine();
+        if(readString.indexOf("RINEX VERSION / TYPE")>=0)
+        {
+            clock_heard.rinex_format_version = readString.mid(0,9);
+            clock_heard.rinex_file_type      = readString.mid(20,1);
+            clock_heard.satellite_system     = readString.mid(40,20).simplified();
+        }
+        else if(readString.indexOf("PGM / RUN BY / DATE")>=0)
+        {
+            clock_heard.creating_program_name = readString.mid(0,20).simplified();
+            clock_heard.creating_agency_name  = readString.mid(20,20).simplified();
+            clock_heard.creation_time         = readString.mid(40,20).simplified();
+        }
+        else if(readString.indexOf("# / TYPES OF DATA")>=0)
+        {
+            clock_heard.clock_type_num = readString.mid(0,6).toInt();
+            for(int i = 0; i<clock_heard.clock_type_num; i++)
+            {
+                clock_heard.clock_type.push_back(readString.mid(6+i*6+6).simplified());
+            }
+        }
+        else if(readString.indexOf("# OF SOLN STA / TRF")>=0)
+        {
+            clock_heard.reference_num   = readString.mid(0,6).toInt();
+            clock_heard.satation_info.reserve(clock_heard.reference_num);
+            clock_heard.reference_frame = readString.mid(10,50).simplified();
+        }
+        else if(readString.indexOf("SOLN STA NAME / NUM")>=0)
+        {
+            station_infomation info;
+            info.station_name = readString.mid(0,5);
+            info.station_id   = readString.mid(5,20);
+            info.station_x    = readString.mid(25,12).toDouble();
+            info.station_y    = readString.mid(37,12).toDouble();
+            info.station_z    = readString.mid(49,11).toDouble();
+            clock_heard.satation_info.push_back(info);
+        }
+        else if(readString.indexOf("# OF SOLN SATS")>=0)
+        {
+            clock_heard.satellite_num = readString.mid(0,6).toInt();
+        }
+        else if(readString.indexOf("PRN LIST")>=0)
+        {
+            int num = ceil(clock_heard.satellite_num / 15.0);
+            for(int i = 0; i<num; i++)
+            {
+                for(int j = 0; j<15; j++)
+                {
+                    clock_heard.satellite_list.push_back(readString.mid(0+j*4,3));
+                }
+                readString = read.readLine();
+            }
+        }
     }while(readString.indexOf("END OF HEADER")<=0);
+
+
+    /*read data*/
+    do
+    {
+        readString = read.readLine();
+        clock_info info;
+        info.clock_type = readString.mid(0,2);
+        if(info.clock_type != "AS")
+        {
+            continue;
+        }
+        info.R_S_name   = readString.mid(3,4);
+        info.year       = readString.mid(8,4).toInt();
+        info.month      = readString.mid(12,3).toInt();
+        info.day        = readString.mid(15,3).toInt();
+        info.hour       = readString.mid(18,3).toInt();
+        info.minute     = readString.mid(21,3).toInt();
+        info.second     = readString.mid(24,10).toDouble();
+        info.number_of_data = readString.mid(34,6).toInt();
+        bool ok = true;
+        if(info.number_of_data<=2)
+        {
+            for(int i = 0; i<info.number_of_data; i++)
+            {
+                info.record.push_back(readString.mid(40+20*i,20).toDouble(&ok));
+            }
+        }
+        else
+        {
+            for(int i = 0; i<2; i++)
+            {
+                info.record.push_back(readString.mid(40+20*i,20).toDouble(&ok));
+            }
+            for(int i = 2; i<info.number_of_data; i++)
+            {
+                info.record.push_back(readString.mid(20*i,20).toDouble(&ok));
+            }
+        }
+        clock.file.push_back(info);
+    }while(!read.atEnd());
+
+    int i= 0;
 }
 
 void file_read::phase_matching(const QVector<sys_record> &match_list, system_signal &sys_list)

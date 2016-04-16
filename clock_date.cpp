@@ -17,7 +17,7 @@ station_infomation::station_infomation()
 clock_date_heard::clock_date_heard()
     :rinex_format_version(""),rinex_file_type(""),satellite_system(""),
     creating_program_name(""),creating_agency_name(""),creation_time(""),
-    clock_type_num(0),satation_num(0),satation_reference_frame(""),satellite_num(0)
+    clock_type_num(0),reference_num(0),reference_frame(""),satellite_num(0)
 
 {
 
