@@ -16,7 +16,7 @@ sp3_heard_date::sp3_heard_date()
 
 
 sp3_sate_date::sp3_sate_date()
-    :flag(""),sate_info(""),x(0),y(0),z(0),clock(0)
+    :flag(""),sate_info(""),x(0),y(0),z(0),clock(0),x_SD(0),y_SD(0),z_SD(0),clock_SD(0)
 {
 
 }

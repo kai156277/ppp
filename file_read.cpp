@@ -17,7 +17,7 @@ file_read::file_read()
 
 }
 
-void file_read::ppp_o_read(QString file_path, o_file_date &obs)
+void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
 {
     QFile ppp_o_file( file_path );
     if(!ppp_o_file.open(QIODevice::ReadOnly))
@@ -327,7 +327,7 @@ void file_read::ppp_o_read(QString file_path, o_file_date &obs)
     ppp_o_file.close();
 }
 
-void file_read::ppp_sp3_read(QString file_path, sp3_file &sp3)
+void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
 {
     QFile ppp_sp3_file( file_path );
     if(!ppp_sp3_file.open(QIODevice::ReadOnly))
@@ -430,12 +430,32 @@ void file_read::ppp_sp3_read(QString file_path, sp3_file &sp3)
             sate_date.y     = readString.mid(18,14).toDouble();
             sate_date.z     = readString.mid(32,14).toDouble();
             sate_date.clock = readString.mid(46,14).toDouble();
+            sate_date.x_SD  = readString.mid(60,3).toInt();
+            sate_date.y_SD  = readString.mid(63,3).toInt();
+            sate_date.z_SD  = readString.mid(66,3).toInt();
+            sate_date.clock_SD = readString.mid(69,4).toInt();
             epoch.epoch.push_back(sate_date);
         }
         sp3.file.push_back(epoch);
     }
 
 
+}
+
+void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
+{
+    QFile ppp_clock_file( file_path );
+    if(!ppp_clock_file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can`t open" << file_path << endl;
+        exit( EXIT_FAILURE );
+    }
+    QTextStream read( &ppp_clock_file );
+    QString readString;
+    do
+    {
+
+    }while(readString.indexOf("END OF HEADER")<=0);
 }
 
 void file_read::phase_matching(const QVector<sys_record> &match_list, system_signal &sys_list)

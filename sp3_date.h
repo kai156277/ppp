@@ -55,6 +55,10 @@ public:
     double y;
     double z;
     double clock;               //satellite clock or Rate-of-change
+    int x_SD;                   //Position Standard Deviation
+    int y_SD;
+    int z_SD;
+    int clock_SD;
 };
 
 class sp3_epoch_date

@@ -19,9 +19,11 @@ TEMPLATE = app
 SOURCES += main.cpp \
     o_date.cpp \
     file_read.cpp \
-    sp3_date.cpp
+    sp3_date.cpp \
+    clock_date.cpp
 
 HEADERS += \
     o_date.h \
     file_read.h \
-    sp3_date.h
+    sp3_date.h \
+    clock_date.h
