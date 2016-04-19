@@ -7,8 +7,9 @@
 #include<cmath>
 #include<ctype.h>
 
-#include "file_read.h"
-#include "o_date.h"
+#include"file_read.h"
+#include"o_date.h"
+#include"gc_gpss.h"
 
 using namespace std;
 
@@ -175,7 +176,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
 
     QVector<int> sate_index={-1,-1,-1,-1,-1,-1};  /*C++11 new standard*/
     QVector<int> sate_num_index={0,0,0,0,0,0};
-    /* GPS GLONASS SBAS Galileo BDS QZSS*/
+    /* GPS GLONASS BDS SBAS Galileo  QZSS*/
 
     for(int i = 0; i<heard_date.system_record.size(); i++)
     {
@@ -189,17 +190,17 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             sate_index[1] = i;
             sate_num_index[1] = heard_date.system_record[i].observation_number;
         }
-        else if(heard_date.system_record[i].system_type == "S")
+        else if(heard_date.system_record[i].system_type == "C")
         {
             sate_index[2] = i;
             sate_num_index[2] = heard_date.system_record[i].observation_number;
         }
-        else if(heard_date.system_record[i].system_type == "E")
+        else if(heard_date.system_record[i].system_type == "S")
         {
             sate_index[3] = i;
             sate_num_index[3] = heard_date.system_record[i].observation_number;
         }
-        else if(heard_date.system_record[i].system_type == "C")
+        else if(heard_date.system_record[i].system_type == "E")
         {
             sate_index[4] = i;
             sate_num_index[4] = heard_date.system_record[i].observation_number;
@@ -230,6 +231,13 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
         epoch.epoch_flag = readString.mid(29,3).toInt();
         epoch.number_of_satellite = readString.mid(32,3).toInt();
         epoch.clock_offset = readString.mid(41,15).toDouble();
+
+        GC_GPSS time;
+        time.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+        time.GCtoGPS();
+        epoch.GPSW = time.GPSW;
+        epoch.GPSS = time.GPSS;
+        time.clear();
 
         for(int i = 0; i<epoch.number_of_satellite; i++)
         {
@@ -289,34 +297,157 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
                     }
 
                 }
-                epoch.satellite_epoch.push_back(satellite_date);
+                epoch.GPS_satellite_epoch.push_back(satellite_date);
                 break;//GPS
             }
             case 'R':
             {
+                satellite_date.satellite_LLI.resize(6);
+                satellite_date.satellite_observation_value.resize(6);
+                satellite_date.satellite_signal_strength.resize(6);
                 int R_num = sate_index[1];
+                for(int j = 0;j<sate_num_index[R_num] ;j++)
+                {
+                    QString value = readString.mid(3+j*16,16);
+                    if(sys_signal.GLONASS_G1 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[0] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[0] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[0] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.GLONASS_G2 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[1] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[1] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[1] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.GLONASS_G3 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[2] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[2] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[2] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.GLONASS_L1 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[3] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[3] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[3] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.GLONASS_L2== j+1)
+                    {
+                        satellite_date.satellite_observation_value[4] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[4] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[4] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.GLONASS_L3  == j+1)
+                    {
+                        satellite_date.satellite_observation_value[5] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[5] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[5] = value.mid(15,1).toInt();
+                    }
+
+                }
+                epoch.GLONASS_satellite_epoch.push_back(satellite_date);
                 break;//GLONASS
             }
-            case 'S':
+            case 'C':
             {
+                satellite_date.satellite_LLI.resize(6);
+                satellite_date.satellite_observation_value.resize(6);
+                satellite_date.satellite_signal_strength.resize(6);
+                int C_num = sate_index[2];
+                for(int j = 0;j<sate_num_index[C_num] ;j++)
+                {
+                    QString value = readString.mid(3+j*16,16);
+                    if(sys_signal.BDS_B1 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[0] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[0] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[0] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.BDS_B2 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[1] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[1] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[1] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.BDS_B3 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[2] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[2] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[2] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.BDS_L1 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[3] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[3] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[3] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.BDS_L2 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[4] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[4] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[4] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.BDS_L3 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[5] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[5] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[5] = value.mid(15,1).toInt();
+                    }
+
+                }
+                epoch.BDS_satellite_epoch.push_back(satellite_date);
+                break;//BDS
+            }/*
+            case 'S':
+            {   //决定现在只读取三大系统的
                 int S_num = sate_index[2];
+                satellite_date.satellite_LLI.resize(4);
+                satellite_date.satellite_observation_value.resize(4);
+                satellite_date.satellite_signal_strength.resize(4);
+                for(int j = 0;j<sate_num_index[S_num] ;j++)
+                {
+                    QString value = readString.mid(3+j*16,16);
+                    if(sys_signal.SBAS_P1 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[0] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[0] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[0] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.SBAS_P5 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[1] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[1] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[1] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.SBAS_L1 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[2] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[2] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[2] = value.mid(15,1).toInt();
+                    }
+                    else if(sys_signal.SBAS_L5 == j+1)
+                    {
+                        satellite_date.satellite_observation_value[3] = value.mid(0,14).toDouble();
+                        satellite_date.satellite_LLI[3] = value.mid(14,1).toInt();
+                        satellite_date.satellite_signal_strength[3] = value.mid(15,1).toInt();
+                    }
+                }
+                epoch.SBAS_satellite_epoch.push_back(satellite_date);
                 break;//SBAS
             }
             case 'E':
             {
+                //数据分隔可能还有问题，暂不讨论
                 int E_num = sate_index[3];
                 break;//Galileo
             }
-            case 'C':
-            {
-                int C_num = sate_index[4];
-                break;//BDS
-            }
             case 'J':
-            {
+            {   //卫星太少，不想考虑
                 int J_num = sate_index[5];
                 break;//QZSS
-            }
+            }*/
             default:
                 break;
             }
@@ -378,7 +509,19 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
     {
         heard_date.satellites.pop_back();
     }
-
+    QStringList num ;
+    num = heard_date.satellites.filter("C");
+    heard_date.BDS_satellites = num.size();
+    num = heard_date.satellites.filter("E");
+    heard_date.Galileo_satellites = num.size();
+    num = heard_date.satellites.filter("G");
+    heard_date.GPS_satellites = num.size();
+    num = heard_date.satellites.filter("J");
+    heard_date.QZSS_satellites = num.size();
+    num = heard_date.satellites.filter("R");
+    heard_date.GLONASS_satellites = num.size();
+    num = heard_date.satellites.filter("S");
+    heard_date.SBAS_satellites = num.size();
     /*++*/
     heard_date.accuracy.reserve(85);
     for(int i=0; i<5; i++)
@@ -420,7 +563,16 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         epoch.hour   = readString.mid(13,3).toInt();
         epoch.minute = readString.mid(16,3).toInt();
         epoch.second = readString.mid(19,12).toDouble();
-        for(int j = 0; j<heard_date.number_of_satellites; j++)
+
+        GC_GPSS time;
+        time.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+        time.GCtoGPS();
+        epoch.GPSW = time.GPSW;
+        epoch.GPSS = time.GPSS;
+        time.clear();
+
+        //B
+        for(int j = 0; j<heard_date.BDS_satellites; j++)
         {
             sp3_sate_date sate_date;
             readString = read.readLine();
@@ -434,12 +586,61 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
             sate_date.y_SD  = readString.mid(63,3).toInt();
             sate_date.z_SD  = readString.mid(66,3).toInt();
             sate_date.clock_SD = readString.mid(69,4).toInt();
-            epoch.epoch.push_back(sate_date);
+            epoch.BDS_epoch.push_back(sate_date);
+        }
+        //E
+        for(int j = 0; j<heard_date.Galileo_satellites; j++)
+        {
+            readString = read.readLine();
+        }
+        //G
+        for(int j = 0; j<heard_date.GPS_satellites; j++)
+        {
+            sp3_sate_date sate_date;
+            readString = read.readLine();
+            sate_date.flag  = readString.mid(0,1);
+            sate_date.sate_info = readString.mid(1,3);
+            sate_date.x     = readString.mid(4,14).toDouble();
+            sate_date.y     = readString.mid(18,14).toDouble();
+            sate_date.z     = readString.mid(32,14).toDouble();
+            sate_date.clock = readString.mid(46,14).toDouble();
+            sate_date.x_SD  = readString.mid(60,3).toInt();
+            sate_date.y_SD  = readString.mid(63,3).toInt();
+            sate_date.z_SD  = readString.mid(66,3).toInt();
+            sate_date.clock_SD = readString.mid(69,4).toInt();
+            epoch.GPS_epoch.push_back(sate_date);
+        }
+        //J
+        for(int j = 0; j<heard_date.QZSS_satellites; j++)
+        {
+            readString = read.readLine();
+        }
+        //R
+        for(int j = 0; j<heard_date.GLONASS_satellites; j++)
+        {
+            sp3_sate_date sate_date;
+            readString = read.readLine();
+            sate_date.flag  = readString.mid(0,1);
+            sate_date.sate_info = readString.mid(1,3);
+            sate_date.x     = readString.mid(4,14).toDouble();
+            sate_date.y     = readString.mid(18,14).toDouble();
+            sate_date.z     = readString.mid(32,14).toDouble();
+            sate_date.clock = readString.mid(46,14).toDouble();
+            sate_date.x_SD  = readString.mid(60,3).toInt();
+            sate_date.y_SD  = readString.mid(63,3).toInt();
+            sate_date.z_SD  = readString.mid(66,3).toInt();
+            sate_date.clock_SD = readString.mid(69,4).toInt();
+            epoch.GLONASS_epoch.push_back(sate_date);
+        }
+        //S
+        for(int j = 0; j<heard_date.SBAS_satellites; j++)
+        {
+            readString = read.readLine();
         }
         sp3.file.push_back(epoch);
     }
 
-
+    ppp_sp3_file.close();
 }
 
 void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
@@ -552,6 +753,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
         }
         clock.file.push_back(info);
     }while(!read.atEnd());
+    ppp_clock_file.close();
 }
 
 void file_read::phase_matching(const QVector<sys_record> &match_list, system_signal &sys_list)

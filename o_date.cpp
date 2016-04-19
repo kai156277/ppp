@@ -28,12 +28,15 @@ o_sate_date::o_sate_date()
     :satellite_infomation("")
 {
     satellite_observation_value.reserve(6);
+    satellite_LLI.reserve(6);
+    satellite_signal_strength.reserve(6);
 }
 
 o_epoch_date::o_epoch_date()
     :year(0),month(0),day(0),
     hour(0),minute(0),second(0),
-    epoch_flag(0),number_of_satellite(0),clock_offset(0)
+    epoch_flag(0),number_of_satellite(0),clock_offset(0),
+    GPSW(0),GPSS(0)
 {
 
 }

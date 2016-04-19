@@ -22,7 +22,11 @@ SOURCES += main.cpp \
     sp3_date.cpp \
     clock_date.cpp \
     math_function.cpp \
-    matching.cpp
+    matching.cpp \
+    readfilepath.cpp \
+    gc_gpss.cpp \
+    ppp_calculate.cpp \
+    ppp_date.cpp
 
 HEADERS += \
     o_date.h \
@@ -30,4 +34,8 @@ HEADERS += \
     sp3_date.h \
     clock_date.h \
     math_function.h \
-    matching.h
+    matching.h \
+    readfilepath.h \
+    gc_gpss.h \
+    ppp_calculate.h \
+    ppp_date.h

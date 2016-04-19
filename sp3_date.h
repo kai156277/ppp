@@ -33,6 +33,13 @@ public:
     int number_of_satellites;
     QStringList satellites;
 
+    int BDS_satellites;
+    int Galileo_satellites;
+    int GPS_satellites;
+    int QZSS_satellites;
+    int GLONASS_satellites;
+    int SBAS_satellites;
+
     /*++*/
     QVector<int> accuracy;      //卫星的精度 orbit Accuracy Exponents
 
@@ -71,7 +78,12 @@ public:
     int hour;
     int minute;
     double second;
-    QVector<sp3_sate_date> epoch;
+    int GPSW;
+    double GPSS;
+    QVector<sp3_sate_date> GPS_epoch;
+    QVector<sp3_sate_date> BDS_epoch;
+    QVector<sp3_sate_date> GLONASS_epoch;
+
 };
 
 class sp3_file

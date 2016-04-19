@@ -1,4 +1,4 @@
-#ifndef READFILEPATH_H
+﻿#ifndef READFILEPATH_H
 #define READFILEPATH_H
 
 #include <QString>
@@ -10,7 +10,7 @@ public:
     readFilePath();
     ~readFilePath();
 
-    void readObsFilePath(QVector<QString> &path , QString filePathName);
+    static void readFile(QVector<QString> &path , QString filePathName ,QString fileType);
 };
 
 #endif // READFILEPATH_H

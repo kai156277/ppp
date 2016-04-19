@@ -1,4 +1,4 @@
-#include <QFileInfo>
+﻿#include <QFileInfo>
 #include <QDir>
 #include <QFileInfoList>
 #include <QStringList>
@@ -18,13 +18,13 @@ readFilePath::~readFilePath()
 
 }
 
-void readFilePath::readObsFilePath(QVector<QString> &path , QString filePathName)
+void readFilePath::readFile(QVector<QString> &path , QString filePathName, QString fileType)
 {
     QDir dir(filePathName);
     dir.setFilter(QDir::Files|QDir::Hidden|QDir::NoSymLinks);
     dir.setSorting(QDir::Name);
     QStringList ObsPathName;
-    ObsPathName << "*.*o";
+    ObsPathName << fileType;  //"*.*o"
     QFileInfoList ObsList = dir.entryInfoList(ObsPathName,QDir::AllEntries,QDir::DirsFirst);
 
     for( int i=0; i<ObsList.size(); i++)

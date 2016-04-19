@@ -1,4 +1,4 @@
-#ifndef GC_GPSS_H
+﻿#ifndef GC_GPSS_H
 #define GC_GPSS_H
 
 
@@ -26,6 +26,7 @@ public:
     double getJD();
     int getGPSW();
     double getGPSS();
+    void clear();
 };
 
 #endif // GC_GPSS_H

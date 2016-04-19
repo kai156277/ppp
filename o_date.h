@@ -123,7 +123,14 @@ public:
     int epoch_flag;
     int number_of_satellite;
     double clock_offset;
-    QVector<o_sate_date> satellite_epoch;
+    int GPSW;
+    double GPSS;
+    QVector<o_sate_date> GPS_satellite_epoch;
+    QVector<o_sate_date> GLONASS_satellite_epoch;
+    QVector<o_sate_date> Galileo_satellite_epoch;
+    QVector<o_sate_date> SBAS_satellite_epoch;
+    QVector<o_sate_date> QZSS_satellite_epoch;
+    QVector<o_sate_date> BDS_satellite_epoch;
 };
 
 class o_file_date

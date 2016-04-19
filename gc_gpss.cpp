@@ -1,4 +1,4 @@
-#include "gc_gpss.h"
+﻿#include "gc_gpss.h"
 
 double GC_GPSS::JDGPSS = 2444244.5;
 
@@ -41,6 +41,14 @@ double GC_GPSS::getJD()
 double GC_GPSS::getGPSS()
 {
     return GPSS;
+}
+
+void GC_GPSS::clear()
+{
+    JD = 0;
+    Year = 0;Month = 0;Day = 0;
+    Hour = 0;Minute = 0;Second = 0;
+    GPSW = 0;GPSS = 0;
 }
 
 int GC_GPSS::getGPSW()
