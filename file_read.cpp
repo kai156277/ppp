@@ -128,6 +128,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             heard_date.first_time = readString.mid(0,43);
             heard_date.time_system = readString.mid(43,8).simplified();
         }
+        /*
         else if(readString.indexOf("SYS / PHASE SHIFT") >= 0)
         {
             phase_shift record;
@@ -168,6 +169,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             }
             heard_date.phase_shift_record.push_back(record);
         }
+        */
         else if(readString.indexOf("SIGNAL STRENGTH UNIT") >= 0)
         {
             heard_date.dbhz = readString.mid(0,20).simplified();
@@ -195,6 +197,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             sate_index[2] = i;
             sate_num_index[2] = heard_date.system_record[i].observation_number;
         }
+        /*
         else if(heard_date.system_record[i].system_type == "S")
         {
             sate_index[3] = i;
@@ -209,7 +212,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
         {
             sate_index[5] = i;
             sate_num_index[5] = heard_date.system_record[i].observation_number;
-        }
+        }*/
     }
 
     /*phase matching*/
@@ -470,90 +473,90 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
     QString readString;
 
     /*read_heard*/
-    sp3_heard_date heard_date;
+
     /*#C*/
     readString = read.readLine();
-    heard_date.mode_flag  = readString.mid(2,1);
-    heard_date.year       = readString.mid(3,4).toInt();
-    heard_date.month      = readString.mid(7,3).toInt();
-    heard_date.day        = readString.mid(10,3).toInt();
-    heard_date.hour       = readString.mid(13,3).toInt();
-    heard_date.minute     = readString.mid(16,3).toInt();
-    heard_date.second     = readString.mid(19,12).toDouble();
-    heard_date.number_of_epoch = readString.mid(31,8).toInt();
-    heard_date.data_use   = readString.mid(39,6).simplified();
-    heard_date.coordinate_system = readString.mid(45,6).simplified();
-    heard_date.orbit_type = readString.mid(51,4).simplified();
-    heard_date.agency     = readString.mid(55,5).simplified();
+    sp3.heard.mode_flag  = readString.mid(2,1);
+    sp3.heard.year       = readString.mid(3,4).toInt();
+    sp3.heard.month      = readString.mid(7,3).toInt();
+    sp3.heard.day        = readString.mid(10,3).toInt();
+    sp3.heard.hour       = readString.mid(13,3).toInt();
+    sp3.heard.minute     = readString.mid(16,3).toInt();
+    sp3.heard.second     = readString.mid(19,12).toDouble();
+    sp3.heard.number_of_epoch = readString.mid(31,8).toInt();
+    sp3.heard.data_use   = readString.mid(39,6).simplified();
+    sp3.heard.coordinate_system = readString.mid(45,6).simplified();
+    sp3.heard.orbit_type = readString.mid(51,4).simplified();
+    sp3.heard.agency     = readString.mid(55,5).simplified();
 
     /*##*/
     readString = read.readLine();
-    heard_date.GPS_week_number  = readString.mid(3,4).toInt();
-    heard_date.second_of_week   = readString.mid(7,16).toDouble();
-    heard_date.interval         = readString.mid(23,15).toDouble();
-    heard_date.modified_JD      = readString.mid(38,6).toInt();
-    heard_date.fractional_day   = readString.mid(44,16).toDouble();
+    sp3.heard.GPS_week_number  = readString.mid(3,4).toInt();
+    sp3.heard.second_of_week   = readString.mid(7,16).toDouble();
+    sp3.heard.interval         = readString.mid(23,15).toDouble();
+    sp3.heard.modified_JD      = readString.mid(38,6).toInt();
+    sp3.heard.fractional_day   = readString.mid(44,16).toDouble();
 
     /*+*/
-    heard_date.satellites.reserve(85);
+    sp3.heard.satellites.reserve(85);
     for(int i = 0; i<5; i++)
     {
         readString = read.readLine();
-        heard_date.number_of_satellites += readString.mid(4,2).toInt();
+        sp3.heard.number_of_satellites += readString.mid(4,2).toInt();
         for(int j = 0; j<17; j++)
         {
-            heard_date.satellites.push_back(readString.mid(9+j*3,3));
+            sp3.heard.satellites.push_back(readString.mid(9+j*3,3));
         }
     }
-    for(int k = 85; k>heard_date.number_of_satellites; k--)
+    for(int k = 85; k>sp3.heard.number_of_satellites; k--)
     {
-        heard_date.satellites.pop_back();
+        sp3.heard.satellites.pop_back();
     }
     QStringList num ;
-    num = heard_date.satellites.filter("C");
-    heard_date.BDS_satellites = num.size();
-    num = heard_date.satellites.filter("E");
-    heard_date.Galileo_satellites = num.size();
-    num = heard_date.satellites.filter("G");
-    heard_date.GPS_satellites = num.size();
-    num = heard_date.satellites.filter("J");
-    heard_date.QZSS_satellites = num.size();
-    num = heard_date.satellites.filter("R");
-    heard_date.GLONASS_satellites = num.size();
-    num = heard_date.satellites.filter("S");
-    heard_date.SBAS_satellites = num.size();
+    num = sp3.heard.satellites.filter("C");
+    sp3.heard.BDS_satellites = num.size();
+    num = sp3.heard.satellites.filter("E");
+    sp3.heard.Galileo_satellites = num.size();
+    num = sp3.heard.satellites.filter("G");
+    sp3.heard.GPS_satellites = num.size();
+    num = sp3.heard.satellites.filter("J");
+    sp3.heard.QZSS_satellites = num.size();
+    num = sp3.heard.satellites.filter("R");
+    sp3.heard.GLONASS_satellites = num.size();
+    num = sp3.heard.satellites.filter("S");
+    sp3.heard.SBAS_satellites = num.size();
     /*++*/
-    heard_date.accuracy.reserve(85);
+    sp3.heard.accuracy.reserve(85);
     for(int i=0; i<5; i++)
     {
         readString = read.readLine();
         for(int j = 0; j<17; j++)
         {
-            heard_date.accuracy.push_back(readString.mid(9+j*3,3).toInt());
+            sp3.heard.accuracy.push_back(readString.mid(9+j*3,3).toInt());
         }
     }
-    for(int k = 85; k>heard_date.number_of_satellites; k--)
+    for(int k = 85; k>sp3.heard.number_of_satellites; k--)
     {
-        heard_date.accuracy.pop_back();
+        sp3.heard.accuracy.pop_back();
     }
 
     /*%c*/
     readString = read.readLine();
-    heard_date.file_type = readString.mid(3,1);
-    heard_date.time_type = readString.mid(9,3);
+    sp3.heard.file_type = readString.mid(3,1);
+    sp3.heard.time_type = readString.mid(9,3);
     readString = read.readLine();
 
     /*%f*/
     readString = read.readLine();
-    heard_date.p_v_base = readString.mid(3 ,10).toDouble();
-    heard_date.c_c_base = readString.mid(14,12).toDouble();
+    sp3.heard.p_v_base = readString.mid(3 ,10).toDouble();
+    sp3.heard.c_c_base = readString.mid(14,12).toDouble();
     for(int i = 0; i<7; i++)
     {
         read.readLine();
     }
     /*date*/
 
-    for(int i = 0; i<heard_date.number_of_epoch; i++)
+    for(int i = 0; i<sp3.heard.number_of_epoch; i++)
     {
         sp3_epoch_date epoch;
         readString = read.readLine();
@@ -572,7 +575,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         time.clear();
 
         //B
-        for(int j = 0; j<heard_date.BDS_satellites; j++)
+        for(int j = 0; j<sp3.heard.BDS_satellites; j++)
         {
             sp3_sate_date sate_date;
             readString = read.readLine();
@@ -589,12 +592,12 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
             epoch.BDS_epoch.push_back(sate_date);
         }
         //E
-        for(int j = 0; j<heard_date.Galileo_satellites; j++)
+        for(int j = 0; j<sp3.heard.Galileo_satellites; j++)
         {
             readString = read.readLine();
         }
         //G
-        for(int j = 0; j<heard_date.GPS_satellites; j++)
+        for(int j = 0; j<sp3.heard.GPS_satellites; j++)
         {
             sp3_sate_date sate_date;
             readString = read.readLine();
@@ -611,12 +614,12 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
             epoch.GPS_epoch.push_back(sate_date);
         }
         //J
-        for(int j = 0; j<heard_date.QZSS_satellites; j++)
+        for(int j = 0; j<sp3.heard.QZSS_satellites; j++)
         {
             readString = read.readLine();
         }
         //R
-        for(int j = 0; j<heard_date.GLONASS_satellites; j++)
+        for(int j = 0; j<sp3.heard.GLONASS_satellites; j++)
         {
             sp3_sate_date sate_date;
             readString = read.readLine();
@@ -633,7 +636,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
             epoch.GLONASS_epoch.push_back(sate_date);
         }
         //S
-        for(int j = 0; j<heard_date.SBAS_satellites; j++)
+        for(int j = 0; j<sp3.heard.SBAS_satellites; j++)
         {
             readString = read.readLine();
         }
@@ -656,35 +659,34 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
 
     /*read heard*/
 
-    clock_date_heard clock_heard;
     do
     {
         readString = read.readLine();
         if(readString.indexOf("RINEX VERSION / TYPE")>=0)
         {
-            clock_heard.rinex_format_version = readString.mid(0,9);
-            clock_heard.rinex_file_type      = readString.mid(20,1);
-            clock_heard.satellite_system     = readString.mid(40,20).simplified();
+            clock.heard.rinex_format_version = readString.mid(0,9);
+            clock.heard.rinex_file_type      = readString.mid(20,1);
+            clock.heard.satellite_system     = readString.mid(40,20).simplified();
         }
         else if(readString.indexOf("PGM / RUN BY / DATE")>=0)
         {
-            clock_heard.creating_program_name = readString.mid(0,20).simplified();
-            clock_heard.creating_agency_name  = readString.mid(20,20).simplified();
-            clock_heard.creation_time         = readString.mid(40,20).simplified();
+            clock.heard.creating_program_name = readString.mid(0,20).simplified();
+            clock.heard.creating_agency_name  = readString.mid(20,20).simplified();
+            clock.heard.creation_time         = readString.mid(40,20).simplified();
         }
         else if(readString.indexOf("# / TYPES OF DATA")>=0)
         {
-            clock_heard.clock_type_num = readString.mid(0,6).toInt();
-            for(int i = 0; i<clock_heard.clock_type_num; i++)
+            clock.heard.clock_type_num = readString.mid(0,6).toInt();
+            for(int i = 0; i<clock.heard.clock_type_num; i++)
             {
-                clock_heard.clock_type.push_back(readString.mid(6+i*6+6).simplified());
+                clock.heard.clock_type.push_back(readString.mid(6+i*6+6).simplified());
             }
         }
         else if(readString.indexOf("# OF SOLN STA / TRF")>=0)
         {
-            clock_heard.reference_num   = readString.mid(0,6).toInt();
-            clock_heard.satation_info.reserve(clock_heard.reference_num);
-            clock_heard.reference_frame = readString.mid(10,50).simplified();
+            clock.heard.reference_num   = readString.mid(0,6).toInt();
+            clock.heard.satation_info.reserve(clock.heard.reference_num);
+            clock.heard.reference_frame = readString.mid(10,50).simplified();
         }
         else if(readString.indexOf("SOLN STA NAME / NUM")>=0)
         {
@@ -694,20 +696,20 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
             info.station_x    = readString.mid(25,12).toDouble();
             info.station_y    = readString.mid(37,12).toDouble();
             info.station_z    = readString.mid(49,11).toDouble();
-            clock_heard.satation_info.push_back(info);
+            clock.heard.satation_info.push_back(info);
         }
         else if(readString.indexOf("# OF SOLN SATS")>=0)
         {
-            clock_heard.satellite_num = readString.mid(0,6).toInt();
+            clock.heard.satellite_num = readString.mid(0,6).toInt();
         }
         else if(readString.indexOf("PRN LIST")>=0)
         {
-            int num = ceil(clock_heard.satellite_num / 15.0);
+            int num = ceil(clock.heard.satellite_num / 15.0);
             for(int i = 0; i<num; i++)
             {
                 for(int j = 0; j<15; j++)
                 {
-                    clock_heard.satellite_list.push_back(readString.mid(0+j*4,3));
+                    clock.heard.satellite_list.push_back(readString.mid(0+j*4,3));
                 }
                 readString = read.readLine();
             }
@@ -716,18 +718,18 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
 
     /*获取每种卫星数量*/
     QStringList num ;
-    num = clock_heard.satellite_list.filter("C");
-    clock_heard.BDS_satellites = num.size();
-    num = clock_heard.satellite_list.filter("G");
-    clock_heard.GPS_satellites = num.size();
-    num = clock_heard.satellite_list.filter("R");
-    clock_heard.GLONASS_satellites = num.size();
-    num = clock_heard.satellite_list.filter("J");
-    clock_heard.QZSS_satellites = num.size();
-    num = clock_heard.satellite_list.filter("E");
-    clock_heard.Galileo_satellites = num.size();
-    num = clock_heard.satellite_list.filter("S");
-    clock_heard.SBAS_satellites = num.size();
+    num = clock.heard.satellite_list.filter("C");
+    clock.heard.BDS_satellites = num.size();
+    num = clock.heard.satellite_list.filter("G");
+    clock.heard.GPS_satellites = num.size();
+    num = clock.heard.satellite_list.filter("R");
+    clock.heard.GLONASS_satellites = num.size();
+    num = clock.heard.satellite_list.filter("J");
+    clock.heard.QZSS_satellites = num.size();
+    num = clock.heard.satellite_list.filter("E");
+    clock.heard.Galileo_satellites = num.size();
+    num = clock.heard.satellite_list.filter("S");
+    clock.heard.SBAS_satellites = num.size();
 
     /*read data*/
     bool readFlag = true;
@@ -761,7 +763,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
             {
                 if(readString.mid(3,1) == "G")
                 {
-                    for(int j = 0; j<clock_heard.GPS_satellites; j++)
+                    for(int j = 0; j<clock.heard.GPS_satellites; j++)
                     {
                         clock_info sate_date;
                         sate_date.sate_name = readString.mid(3,3);
@@ -775,7 +777,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 }
                 else if(readString.mid(3,1) == "R")
                 {
-                    for(int j = 0; j<clock_heard.GLONASS_satellites; j++)
+                    for(int j = 0; j<clock.heard.GLONASS_satellites; j++)
                     {
                         clock_info sate_date;
                         sate_date.sate_name = readString.mid(3,3);
@@ -789,14 +791,14 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 }
                 else if(readString.mid(3,1) == "E")
                 {
-                    for(int k = 0; k<clock_heard.Galileo_satellites; k++)
+                    for(int k = 0; k<clock.heard.Galileo_satellites; k++)
                     {
                         readString = read.readLine();
                     }
                 }
                 else if(readString.mid(3,1) == "C")
                 {
-                    for(int j = 0; j<clock_heard.BDS_satellites; j++)
+                    for(int j = 0; j<clock.heard.BDS_satellites; j++)
                     {
                         clock_info sate_date;
                         sate_date.sate_name = readString.mid(3,3);
@@ -810,14 +812,14 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 }
                 else if(readString.mid(3,1) == "S")
                 {
-                    for(int k = 0; k<clock_heard.SBAS_satellites; k++)
+                    for(int k = 0; k<clock.heard.SBAS_satellites; k++)
                     {
                         readString = read.readLine();
                     }
                 }
                 else if(readString.mid(3,1) == "J")
                 {
-                    for(int k = 0; k<clock_heard.QZSS_satellites; k++)
+                    for(int k = 0; k<clock.heard.QZSS_satellites; k++)
                     {
                         readString = read.readLine();
                     }
@@ -855,6 +857,16 @@ void file_read::phase_matching(const QVector<sys_record> &match_list, system_sig
             sys_list.GLONASS_L2 = each_phase_matching(sys_list.GLONASS_L2_list,match_list[i].observation_descriptor);
             sys_list.GLONASS_L3 = each_phase_matching(sys_list.GLONASS_L3_list,match_list[i].observation_descriptor);
         }
+        else if(match_list[i].system_type == "C")
+        {
+            sys_list.BDS_B1 = each_phase_matching(sys_list.BDS_B1_list,match_list[i].observation_descriptor);
+            sys_list.BDS_B2 = each_phase_matching(sys_list.BDS_B2_list,match_list[i].observation_descriptor);
+            sys_list.BDS_B3 = each_phase_matching(sys_list.BDS_B3_list,match_list[i].observation_descriptor);
+            sys_list.BDS_L1 = each_phase_matching(sys_list.BDS_L1_list,match_list[i].observation_descriptor);
+            sys_list.BDS_L2 = each_phase_matching(sys_list.BDS_L2_list,match_list[i].observation_descriptor);
+            sys_list.BDS_L3 = each_phase_matching(sys_list.BDS_L3_list,match_list[i].observation_descriptor);
+        }
+        /*
         else if(match_list[i].system_type == "E")
         {
             sys_list.Galileo_E1  = each_phase_matching(sys_list.Galileo_E1_list, match_list[i].observation_descriptor);
@@ -875,15 +887,6 @@ void file_read::phase_matching(const QVector<sys_record> &match_list, system_sig
             sys_list.SBAS_L1 = each_phase_matching(sys_list.SBAS_L1_list,match_list[i].observation_descriptor);
             sys_list.SBAS_L5 = each_phase_matching(sys_list.SBAS_L5_list,match_list[i].observation_descriptor);
         }
-        else if(match_list[i].system_type == "C")
-        {
-            sys_list.BDS_B1 = each_phase_matching(sys_list.BDS_B1_list,match_list[i].observation_descriptor);
-            sys_list.BDS_B2 = each_phase_matching(sys_list.BDS_B2_list,match_list[i].observation_descriptor);
-            sys_list.BDS_B3 = each_phase_matching(sys_list.BDS_B3_list,match_list[i].observation_descriptor);
-            sys_list.BDS_L1 = each_phase_matching(sys_list.BDS_L1_list,match_list[i].observation_descriptor);
-            sys_list.BDS_L2 = each_phase_matching(sys_list.BDS_L2_list,match_list[i].observation_descriptor);
-            sys_list.BDS_L3 = each_phase_matching(sys_list.BDS_L3_list,match_list[i].observation_descriptor);
-        }
         else if(match_list[i].system_type == "J")
         {
             sys_list.QZSS_P1 = each_phase_matching(sys_list.QZSS_P1_list,match_list[i].observation_descriptor);
@@ -894,7 +897,7 @@ void file_read::phase_matching(const QVector<sys_record> &match_list, system_sig
             sys_list.QZSS_L2 = each_phase_matching(sys_list.QZSS_L2_list,match_list[i].observation_descriptor);
             sys_list.QZSS_L5 = each_phase_matching(sys_list.QZSS_L5_list,match_list[i].observation_descriptor);
             sys_list.QZSS_L6 = each_phase_matching(sys_list.QZSS_L6_list,match_list[i].observation_descriptor);
-        }
+        }*/
     }
 }
 

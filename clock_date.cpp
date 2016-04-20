@@ -1,6 +1,7 @@
 ﻿#include "clock_date.h"
 
 clock_file::clock_file()
+    :heard()
 {
 
 }

@@ -4,6 +4,8 @@
 #include<QString>
 #include<QVector>
 
+#include"o_date.h"
+
 class sp3_heard_date
 {
 public:
@@ -56,6 +58,7 @@ class sp3_sate_date
 {
 public:
     sp3_sate_date();
+    bool operator == (const o_sate_date &left) const;
     QString flag;               //has position & velocity
     QString sate_info;
     double x;                   //position or velocity
@@ -90,7 +93,29 @@ class sp3_file
 {
 public:
     sp3_file();
+    sp3_heard_date heard;
     QVector<sp3_epoch_date> file;
+};
+
+class sp3_GPSS_finder
+{
+public:
+    sp3_GPSS_finder(const double &time)
+        :first_time(time){}
+    bool operator()(const sp3_epoch_date &find_time)
+    {
+        if(find_time.GPSS >= first_time)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+private:
+    double first_time;
 };
 
 #endif // SP3_DATE_H

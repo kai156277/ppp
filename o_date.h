@@ -127,9 +127,9 @@ public:
     double GPSS;
     QVector<o_sate_date> GPS_satellite_epoch;
     QVector<o_sate_date> GLONASS_satellite_epoch;
-    QVector<o_sate_date> Galileo_satellite_epoch;
-    QVector<o_sate_date> SBAS_satellite_epoch;
-    QVector<o_sate_date> QZSS_satellite_epoch;
+    //QVector<o_sate_date> Galileo_satellite_epoch;
+    //QVector<o_sate_date> SBAS_satellite_epoch;
+    //QVector<o_sate_date> QZSS_satellite_epoch;
     QVector<o_sate_date> BDS_satellite_epoch;
 };
 
@@ -155,26 +155,27 @@ public:
         GLONASS_L1,GLONASS_L2,GLONASS_L3;
     QStringList GLONASS_G1_list,GLONASS_G2_list,GLONASS_G3_list,
                 GLONASS_L1_list,GLONASS_L2_list,GLONASS_L3_list;
-    /*Galileo_signal    E*/
-    int Galileo_E1,Galileo_E5a,Galileo_E5b,Galileo_E5,Galileo_E6,
-        Galileo_L1,Galileo_L5a,Galileo_L5b,Galileo_L5,Galileo_L6;
-    QStringList Galileo_E1_list,Galileo_E5a_list,Galileo_E5b_list,Galileo_E5_list,Galileo_E6_list,
-                Galileo_L1_list,Galileo_L5a_list,Galileo_L5b_list,Galileo_L5_list,Galileo_L6_list;
-    /*SBAS_signal       S*/
-    int SBAS_P1,SBAS_P5,
-        SBAS_L1,SBAS_L5;
-    QStringList SBAS_P1_list,SBAS_P5_list,
-                SBAS_L1_list,SBAS_L5_list;
-    /*QZSS_signal       J*/
-    int QZSS_P1,QZSS_P2,QZSS_P5,QZSS_P6,
-        QZSS_L1,QZSS_L2,QZSS_L5,QZSS_L6;
-    QStringList QZSS_P1_list,QZSS_P2_list,QZSS_P5_list,QZSS_P6_list,
-                QZSS_L1_list,QZSS_L2_list,QZSS_L5_list,QZSS_L6_list;
     /*BDS_signal        B*/
     int BDS_B1,BDS_B2,BDS_B3,
         BDS_L1,BDS_L2,BDS_L3;
     QStringList BDS_B1_list,BDS_B2_list,BDS_B3_list,
                 BDS_L1_list,BDS_L2_list,BDS_L3_list;
+//    /*Galileo_signal    E*/
+//    int Galileo_E1,Galileo_E5a,Galileo_E5b,Galileo_E5,Galileo_E6,
+//        Galileo_L1,Galileo_L5a,Galileo_L5b,Galileo_L5,Galileo_L6;
+//    QStringList Galileo_E1_list,Galileo_E5a_list,Galileo_E5b_list,Galileo_E5_list,Galileo_E6_list,
+//                Galileo_L1_list,Galileo_L5a_list,Galileo_L5b_list,Galileo_L5_list,Galileo_L6_list;
+//    /*SBAS_signal       S*/
+//    int SBAS_P1,SBAS_P5,
+//        SBAS_L1,SBAS_L5;
+//    QStringList SBAS_P1_list,SBAS_P5_list,
+//                SBAS_L1_list,SBAS_L5_list;
+//    /*QZSS_signal       J*/
+//    int QZSS_P1,QZSS_P2,QZSS_P5,QZSS_P6,
+//        QZSS_L1,QZSS_L2,QZSS_L5,QZSS_L6;
+//    QStringList QZSS_P1_list,QZSS_P2_list,QZSS_P5_list,QZSS_P6_list,
+//                QZSS_L1_list,QZSS_L2_list,QZSS_L5_list,QZSS_L6_list;
+
 };
 
 #endif // O_DATE_H

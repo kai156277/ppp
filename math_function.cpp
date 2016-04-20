@@ -5,8 +5,9 @@ math_function::math_function()
 
 }
 
-math_function::lagrange(double fx, double *form, int size)
+double math_function::lagrange(double fx, double *form, int size)
 {
+    size = size / 2;
     double y = 0;
     for(int i = 0; i<size; i++)
     {

@@ -87,6 +87,7 @@ class clock_file
 {
 public:
     clock_file();
+    clock_date_heard heard;
     QVector<clock_epoch> file;
 };
 

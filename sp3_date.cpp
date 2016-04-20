@@ -23,6 +23,18 @@ sp3_sate_date::sp3_sate_date()
 
 }
 
+bool sp3_sate_date::operator ==(const o_sate_date &left) const
+{
+    if(this->sate_info == left.satellite_infomation)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 sp3_epoch_date::sp3_epoch_date()
     :year(0),month(0),day(0),
@@ -34,6 +46,7 @@ sp3_epoch_date::sp3_epoch_date()
 
 
 sp3_file::sp3_file()
+    :heard()
 {
 
 }
