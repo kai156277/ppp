@@ -1,6 +1,6 @@
 ﻿#include "clock_date.h"
 
-clock_date::clock_date()
+clock_file::clock_file()
 {
 
 }
@@ -26,9 +26,18 @@ clock_date_heard::clock_date_heard()
 
 
 clock_info::clock_info()
-    :clock_type(""),R_S_name(""),
-     year(0),month(0),day(0),
-     hour(0),minute(0),second(0),number_of_data(0)
+    :sate_name("")
+
 {
 
+}
+
+
+clock_epoch::clock_epoch()
+    :year(0),month(0),day(0),
+     hour(0),minute(0),second(0),GPSS(0),GPSW(0),number_of_data(0)
+{
+    GPS_epoch.reserve(30);
+    BDS_epoch.reserve(20);
+    GLONASS_epoch.reserve(30);
 }

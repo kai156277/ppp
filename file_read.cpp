@@ -643,7 +643,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
     ppp_sp3_file.close();
 }
 
-void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
+void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
 {
     QFile ppp_clock_file( file_path );
     if(!ppp_clock_file.open(QIODevice::ReadOnly))
@@ -714,44 +714,121 @@ void file_read::ppp_clock_read(const QString &file_path, clock_date &clock)
         }
     }while(readString.indexOf("END OF HEADER")<=0);
 
+    /*获取每种卫星数量*/
+    QStringList num ;
+    num = clock_heard.satellite_list.filter("C");
+    clock_heard.BDS_satellites = num.size();
+    num = clock_heard.satellite_list.filter("G");
+    clock_heard.GPS_satellites = num.size();
+    num = clock_heard.satellite_list.filter("R");
+    clock_heard.GLONASS_satellites = num.size();
+    num = clock_heard.satellite_list.filter("J");
+    clock_heard.QZSS_satellites = num.size();
+    num = clock_heard.satellite_list.filter("E");
+    clock_heard.Galileo_satellites = num.size();
+    num = clock_heard.satellite_list.filter("S");
+    clock_heard.SBAS_satellites = num.size();
 
     /*read data*/
+    bool readFlag = true;
     do
     {
-        readString = read.readLine();
-        clock_info info;
-        info.clock_type = readString.mid(0,2);
-        if(info.clock_type != "AS")
+        if(readFlag == true)
         {
-            continue;
+            readString = read.readLine();
         }
-        info.R_S_name   = readString.mid(3,4);
-        info.year       = readString.mid(8,4).toInt();
-        info.month      = readString.mid(12,3).toInt();
-        info.day        = readString.mid(15,3).toInt();
-        info.hour       = readString.mid(18,3).toInt();
-        info.minute     = readString.mid(21,3).toInt();
-        info.second     = readString.mid(24,10).toDouble();
-        info.number_of_data = readString.mid(34,6).toInt();
-        if(info.number_of_data<=2)
+        QString clock_type = readString.mid(0,2);
+        if(clock_type == "AS")
         {
-            for(int i = 0; i<info.number_of_data; i++)
+            readFlag = false;
+            clock_epoch epoch;
+            epoch.year       = readString.mid(8,4).toInt();
+            epoch.month      = readString.mid(12,3).toInt();
+            epoch.day        = readString.mid(15,3).toInt();
+            epoch.hour       = readString.mid(18,3).toInt();
+            epoch.minute     = readString.mid(21,3).toInt();
+            epoch.second     = readString.mid(24,10).toDouble();
+            epoch.number_of_data = readString.mid(34,6).toInt();
+
+            GC_GPSS time;
+            time.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+            time.GCtoGPS();
+            epoch.GPSW = time.GPSW;
+            epoch.GPSS = time.GPSS;
+            time.clear();
+
+            for(int i = 0; i<6; i++)
             {
-                info.record.push_back(readString.mid(40+20*i,20).toDouble());
+                if(readString.mid(3,1) == "G")
+                {
+                    for(int j = 0; j<clock_heard.GPS_satellites; j++)
+                    {
+                        clock_info sate_date;
+                        sate_date.sate_name = readString.mid(3,3);
+                        for(int k = 0; k<epoch.number_of_data; k++)
+                        {
+                            sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
+                        }
+                        epoch.GPS_epoch.push_back(sate_date);
+                        readString = read.readLine();
+                    }
+                }
+                else if(readString.mid(3,1) == "R")
+                {
+                    for(int j = 0; j<clock_heard.GLONASS_satellites; j++)
+                    {
+                        clock_info sate_date;
+                        sate_date.sate_name = readString.mid(3,3);
+                        for(int k = 0; k<epoch.number_of_data; k++)
+                        {
+                            sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
+                        }
+                        epoch.GLONASS_epoch.push_back(sate_date);
+                        readString = read.readLine();
+                    }
+                }
+                else if(readString.mid(3,1) == "E")
+                {
+                    for(int k = 0; k<clock_heard.Galileo_satellites; k++)
+                    {
+                        readString = read.readLine();
+                    }
+                }
+                else if(readString.mid(3,1) == "C")
+                {
+                    for(int j = 0; j<clock_heard.BDS_satellites; j++)
+                    {
+                        clock_info sate_date;
+                        sate_date.sate_name = readString.mid(3,3);
+                        for(int k = 0; k<epoch.number_of_data; k++)
+                        {
+                            sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
+                        }
+                        epoch.BDS_epoch.push_back(sate_date);
+                        readString = read.readLine();
+                    }
+                }
+                else if(readString.mid(3,1) == "S")
+                {
+                    for(int k = 0; k<clock_heard.SBAS_satellites; k++)
+                    {
+                        readString = read.readLine();
+                    }
+                }
+                else if(readString.mid(3,1) == "J")
+                {
+                    for(int k = 0; k<clock_heard.QZSS_satellites; k++)
+                    {
+                        readString = read.readLine();
+                    }
+                }
             }
+            clock.file.push_back(epoch);
         }
         else
         {
-            for(int i = 0; i<2; i++)
-            {
-                info.record.push_back(readString.mid(40+20*i,20).toDouble());
-            }
-            for(int i = 2; i<info.number_of_data; i++)
-            {
-                info.record.push_back(readString.mid(20*i,20).toDouble());
-            }
+            readFlag = true;
         }
-        clock.file.push_back(info);
     }while(!read.atEnd());
     ppp_clock_file.close();
 }

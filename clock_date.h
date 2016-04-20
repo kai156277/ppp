@@ -49,29 +49,45 @@ public:
 
     /*PRN LIST*/
     QStringList satellite_list;
+    int BDS_satellites;
+    int Galileo_satellites;
+    int GPS_satellites;
+    int QZSS_satellites;
+    int GLONASS_satellites;
+    int SBAS_satellites;
 };
 
 class clock_info
 {
 public:
     clock_info();
-    QString clock_type;
-    QString R_S_name;           //Receiver or Satellite Name
+    QString sate_name;           //Receiver or Satellite Name
+    QVector<double> record;
+};
+
+class clock_epoch
+{
+public:
+    clock_epoch();
     int year;
     int month;
     int day;
     int hour;
     int minute;
     double second;
+    double GPSS;
+    int GPSW;
     int number_of_data;
-    QVector<double> record;
+    QVector<clock_info> GPS_epoch;
+    QVector<clock_info> BDS_epoch;
+    QVector<clock_info> GLONASS_epoch;
 };
 
-class clock_date
+class clock_file
 {
 public:
-    clock_date();
-    QVector<clock_info> file;
+    clock_file();
+    QVector<clock_epoch> file;
 };
 
 #endif // CLOCK_DATE_H
