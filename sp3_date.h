@@ -6,10 +6,10 @@
 
 #include"o_date.h"
 
-class sp3_heard_date
+class sp3_heard
 {
 public:
-    sp3_heard_date();
+    sp3_heard();
     /*#c*/
     QString mode_flag;
     int year;
@@ -54,10 +54,10 @@ public:
     double c_c_base;            //Clock Corrections Base
 };
 
-class sp3_sate_date
+class sp3_sate
 {
 public:
-    sp3_sate_date();
+    sp3_sate();
     bool operator == (const o_sate_date &left) const;
     QString flag;               //has position & velocity
     QString sate_info;
@@ -71,10 +71,10 @@ public:
     int clock_SD;
 };
 
-class sp3_epoch_date
+class sp3_epoch
 {
 public:
-    sp3_epoch_date();
+    sp3_epoch();
     int year;
     int month;
     int day;
@@ -83,9 +83,9 @@ public:
     double second;
     int GPSW;
     double GPSS;
-    QVector<sp3_sate_date> GPS_epoch;
-    QVector<sp3_sate_date> BDS_epoch;
-    QVector<sp3_sate_date> GLONASS_epoch;
+    QVector<sp3_sate> GPS_epoch;
+    QVector<sp3_sate> BDS_epoch;
+    QVector<sp3_sate> GLONASS_epoch;
 
 };
 
@@ -93,8 +93,8 @@ class sp3_file
 {
 public:
     sp3_file();
-    sp3_heard_date heard;
-    QVector<sp3_epoch_date> file;
+    sp3_heard heard;
+    QVector<sp3_epoch> file;
 };
 
 class sp3_GPSS_finder
@@ -102,7 +102,7 @@ class sp3_GPSS_finder
 public:
     sp3_GPSS_finder(const double &time)
         :first_time(time){}
-    bool operator()(const sp3_epoch_date &find_time)
+    bool operator()(const sp3_epoch &find_time)
     {
         if(find_time.GPSS >= first_time)
         {

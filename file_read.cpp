@@ -247,7 +247,47 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             readString = read.readLine();
             o_sate_date satellite_date;
             satellite_date.satellite_infomation = readString.mid(0,3);
-            /*use for QString to char* to ascii*/
+
+            if(satellite_date.satellite_infomation.mid(0,1) == "G")
+            {
+                int G_num = sate_index[0];
+                QVector<QString> sate;
+                sate.reserve(sate_num_index[G_num]);
+                satellite_date.satellite_LLI.resize(6);
+                satellite_date.satellite_observation_value.resize(6);
+                satellite_date.satellite_signal_strength.resize(6);
+                for(int j = 0;j<sate_num_index[G_num] ;j++)
+                {
+                    sate.push_back(readString.mid(3+j*16,16));
+                }
+
+                satellite_date.satellite_observation_value[0] = sate[sys_signal.GPS_P1-1].mid(0,14).toDouble();
+                satellite_date.satellite_LLI[0] = sate[sys_signal.GPS_P1-1].mid(14,1).toInt();
+                satellite_date.satellite_signal_strength[0] = sate[sys_signal.GPS_P1-1].mid(15,1).toInt();
+
+                satellite_date.satellite_observation_value[1] = sate[sys_signal.GPS_P2-1].mid(0,14).toDouble();
+                satellite_date.satellite_LLI[1] = sate[sys_signal.GPS_P2-1].mid(14,1).toInt();
+                satellite_date.satellite_signal_strength[1] = sate[sys_signal.GPS_P2-1].mid(15,1).toInt();
+
+                satellite_date.satellite_observation_value[2] = sate[sys_signal.GPS_P5-1].mid(0,14).toDouble();
+                satellite_date.satellite_LLI[2] = sate[sys_signal.GPS_P5-1].mid(14,1).toInt();
+                satellite_date.satellite_signal_strength[2] = sate[sys_signal.GPS_P5-1].mid(15,1).toInt();
+
+                satellite_date.satellite_observation_value[3] = sate[sys_signal.GPS_L1-1].mid(0,14).toDouble();
+                satellite_date.satellite_LLI[3] = sate[sys_signal.GPS_L1-1].mid(14,1).toInt();
+                satellite_date.satellite_signal_strength[3] = sate[sys_signal.GPS_L1-1].mid(15,1).toInt();
+
+                satellite_date.satellite_observation_value[4] = sate[sys_signal.GPS_L2-1].mid(0,14).toDouble();
+                satellite_date.satellite_LLI[4] = sate[sys_signal.GPS_L2-1].mid(14,1).toInt();
+                satellite_date.satellite_signal_strength[4] = sate[sys_signal.GPS_L2-1].mid(15,1).toInt();
+
+                satellite_date.satellite_observation_value[5] = sate[sys_signal.GPS_L5-1].mid(0,14).toDouble();
+                satellite_date.satellite_LLI[5] = sate[sys_signal.GPS_L5-1].mid(14,1).toInt();
+                satellite_date.satellite_signal_strength[5] = sate[sys_signal.GPS_L5-1].mid(15,1).toInt();
+
+                epoch.GPS_satellite_epoch.push_back(satellite_date);
+            }
+            /*use for QString to char* to ascii
             char *sate_info = NULL;
             QByteArray ba = satellite_date.satellite_infomation.mid(0,1).toLatin1();
             sate_info=ba.data();
@@ -451,11 +491,10 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             {   //卫星太少，不想考虑
                 int J_num = sate_index[5];
                 break;//QZSS
-            }*/
+            }
             default:
                 break;
-            }
-
+            }*/
         }
         epoch.number_of_satellite = epoch.GPS_satellite_epoch.size();
         obs.satellite_file.push_back(epoch);
@@ -560,7 +599,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
 
     for(int i = 0; i<sp3.heard.number_of_epoch; i++)
     {
-        sp3_epoch_date epoch;
+        sp3_epoch epoch;
         readString = read.readLine();
         epoch.year   = readString.mid(3,4).toInt();
         epoch.month  = readString.mid(7,3).toInt();
@@ -604,7 +643,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         //G
         for(int j = 0; j<sp3.heard.GPS_satellites; j++)
         {
-            sp3_sate_date sate_date;
+            sp3_sate sate_date;
             readString = read.readLine();
             sate_date.flag  = readString.mid(0,1);
             sate_date.sate_info = readString.mid(1,3);
@@ -773,16 +812,13 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 {
                     for(int j = 0; j<clock.heard.GPS_satellites; j++)
                     {
-                        /*
+
                         clock_info sate_date;
-                        sate_date.sate_name = readString.mid(3,3);
-                        for(int k = 0; k<epoch.number_of_data; k++)
-                        {
-                            sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
-                        }
-                        epoch.GPS_epoch.push_back(sate_date);
-                        */
                         readString = read.readLine();
+                        sate_date.sate_name = readString.mid(3,3);
+                        sate_date.clock_bias = readString.mid(40,20).toDouble();
+                        sate_date.clock_bias_sigma = readString.mid(60,20).toDouble();
+                        epoch.GPS_epoch.push_back(sate_date);
                     }
                 }
                 else if(readString.mid(3,1) == "R")

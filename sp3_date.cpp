@@ -1,6 +1,6 @@
 ﻿#include "sp3_date.h"
 
-sp3_heard_date::sp3_heard_date()
+sp3_heard::sp3_heard()
     :mode_flag(""),
     year(0),month(0),day(0),
     hour(0),minute(0),second(0),
@@ -17,13 +17,13 @@ sp3_heard_date::sp3_heard_date()
 }
 
 
-sp3_sate_date::sp3_sate_date()
+sp3_sate::sp3_sate()
     :flag(""),sate_info(""),x(0),y(0),z(0),clock(0),x_SD(0),y_SD(0),z_SD(0),clock_SD(0)
 {
 
 }
 
-bool sp3_sate_date::operator ==(const o_sate_date &left) const
+bool sp3_sate::operator ==(const o_sate_date &left) const
 {
     if(this->sate_info == left.satellite_infomation)
     {
@@ -36,7 +36,7 @@ bool sp3_sate_date::operator ==(const o_sate_date &left) const
 }
 
 
-sp3_epoch_date::sp3_epoch_date()
+sp3_epoch::sp3_epoch()
     :year(0),month(0),day(0),
     hour(0),minute(0),second(0),
     GPSW(0),GPSS(0)

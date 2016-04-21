@@ -28,8 +28,9 @@ int main()
      */
     read.ppp_o_read("C://PPP//readFile//oFile//cas11680.15o",ofile);
     read.ppp_sp3_read("C:/PPP/readFile/sp3/gbm18493.sp3",sp3);
-    //read.ppp_clock_read("C:/PPP/readFile/clk/gbm18493.clk",clock);
-    pppCalculate.ppp_coordinate(ofile,sp3,ppp);
+    read.ppp_clock_read("C:/PPP/readFile/clk/gbm18493.clk",clock);
+    pppCalculate.ppp_clock(ofile,sp3,clock,ppp);
+    //pppCalculate.ppp_coordinate(ofile,sp3,ppp);
     //double i = math_function::lagrange(0.5,d,8);
     int j = 0;
     cout << "END!";

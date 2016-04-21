@@ -5,6 +5,8 @@
 #include<QStringList>
 #include<QVector>
 
+#include"o_date.h"
+
 class station_infomation
 {
 public:
@@ -16,10 +18,10 @@ public:
     double station_z;
 };
 
-class clock_date_heard
+class clock_heard
 {
 public:
-    clock_date_heard();
+    clock_heard();
 
     /*RINEX VERSION / TYPE*/
     QString rinex_format_version;
@@ -61,8 +63,10 @@ class clock_info
 {
 public:
     clock_info();
+    bool operator == (const o_sate_date &left) const;
     QString sate_name;           //Receiver or Satellite Name
-    QVector<double> record;
+    double clock_bias;
+    double clock_bias_sigma;
 };
 
 class clock_epoch
@@ -87,8 +91,29 @@ class clock_file
 {
 public:
     clock_file();
-    clock_date_heard heard;
+    clock_heard heard;
     QVector<clock_epoch> file;
+};
+
+class clock_GPSS_finder
+{
+public:
+    clock_GPSS_finder(const double &time)
+        :first_time(time){}
+    bool operator()(const clock_epoch &find_time)
+    {
+        if(find_time.GPSS >= first_time)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+private:
+    double first_time;
 };
 
 #endif // CLOCK_DATE_H

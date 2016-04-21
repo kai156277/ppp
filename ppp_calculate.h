@@ -14,9 +14,9 @@ class ppp_calculate
 public:
     ppp_calculate();
     void ppp_coordinate(const o_file_date &ofile,const sp3_file &sp3file,ppp_file &ppp);
-    void ppp_clock(const o_file_date &ofile,const clock_file &clockfile,ppp_file &ppp);
+    void ppp_clock(const o_file_date &ofile,const sp3_file &sp3file,const clock_file &clockfile,ppp_file &ppp);
 private:
-
+    static double c;
 };
 
 #endif // PPP_CALCULATE_H
