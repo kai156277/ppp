@@ -10,8 +10,7 @@ sp3_heard::sp3_heard()
     modified_JD(0),fractional_day(0),number_of_satellites(0),
     file_type(""),time_type(""),
     p_v_base(0),c_c_base(0),
-    BDS_satellites(0),Galileo_satellites(0),GPS_satellites(0),
-    QZSS_satellites(0),GLONASS_satellites(0),SBAS_satellites(0)
+    before_GPS(0),after_GPS(0),GPS_satellites(0)
 {
 
 }

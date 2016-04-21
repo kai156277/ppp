@@ -83,8 +83,6 @@ public:
     int GPSW;
     int number_of_data;
     QVector<clock_info> GPS_epoch;
-    QVector<clock_info> BDS_epoch;
-    QVector<clock_info> GLONASS_epoch;
 };
 
 class clock_file

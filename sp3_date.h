@@ -35,6 +35,8 @@ public:
     int number_of_satellites;
     QStringList satellites;
 
+    int before_GPS;
+    int after_GPS;
     int BDS_satellites;
     int Galileo_satellites;
     int GPS_satellites;
@@ -84,8 +86,6 @@ public:
     int GPSW;
     double GPSS;
     QVector<sp3_sate> GPS_epoch;
-    QVector<sp3_sate> BDS_epoch;
-    QVector<sp3_sate> GLONASS_epoch;
 
 };
 

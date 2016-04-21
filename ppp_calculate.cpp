@@ -24,7 +24,7 @@ void ppp_calculate::ppp_coordinate(const o_file_date &ofile, const sp3_file &sp3
         sp3_find_time_item = std::find_if(sp3file.file.begin(),sp3file.file.end(),sp3_GPSS_finder(sp3_find_time));
         int sp3_item = sp3_find_time_item - sp3file.file.begin(); //lagrange的插值起点
         //寻找每一个对应卫星的lagrange的插值
-        for(int j = 0; j<ofile.satellite_file[i].GPS_satellite_epoch.size(); j++)
+        for(int j = 0; j<ofile.satellite_file[i].satellite_epoch.size(); j++)
         {
             ppp_sate sate;
             //每一个卫星的7个插值
@@ -36,7 +36,7 @@ void ppp_calculate::ppp_coordinate(const o_file_date &ofile, const sp3_file &sp3
                 QVector<sp3_sate>::const_iterator sate_find = NULL;
                 sate_find = std::find(sp3file.file[sp3_item+k].GPS_epoch.begin(),
                                       sp3file.file[sp3_item+k].GPS_epoch.end(),
-                                      ofile.satellite_file[i].GPS_satellite_epoch[j]);
+                                      ofile.satellite_file[i].satellite_epoch[j]);
                 sate_x[k] = sp3file.file[sp3_item+k].GPSS;
                 sate_y[k] = sp3file.file[sp3_item+k].GPSS;
                 sate_z[k] = sp3file.file[sp3_item+k].GPSS;
@@ -45,7 +45,7 @@ void ppp_calculate::ppp_coordinate(const o_file_date &ofile, const sp3_file &sp3
                 sate_z[k+7] = sate_find->z*1000;
             }
             //计算x,y,z坐标
-            sate.PRN = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_infomation;
+            sate.PRN = ofile.satellite_file[i].satellite_epoch[j].satellite_infomation;
             sate.position_x = math_function::lagrange(epoch.GPSS,sate_x,14);
             sate.position_y = math_function::lagrange(epoch.GPSS,sate_y,14);
             sate.position_z = math_function::lagrange(epoch.GPSS,sate_z,14);
@@ -88,7 +88,7 @@ void ppp_calculate::ppp_clock(const o_file_date &ofile,const sp3_file &sp3file,c
         int sp3_item = sp3_find_time_item - sp3file.file.begin();
 
         //寻找每一个对应卫星的lagrange的插值
-        for(int j = 0; j<ofile.satellite_file[i].GPS_satellite_epoch.size(); j++)
+        for(int j = 0; j<ofile.satellite_file[i].satellite_epoch.size(); j++)
         {
             ppp_sate sate;
             //每一个卫星的7个插值
@@ -97,12 +97,12 @@ void ppp_calculate::ppp_clock(const o_file_date &ofile,const sp3_file &sp3file,c
             double sate_y[14] = {0};
             double sate_z[14] = {0};
 
-            sate.P1 = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_observation_value[0];
-            sate.P2 = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_observation_value[1];
-            sate.P3 = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_observation_value[2];
-            sate.L1 = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_observation_value[3];
-            sate.L2 = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_observation_value[4];
-            sate.L3 = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_observation_value[5];
+            sate.P1 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[0];
+            sate.P2 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[1];
+            sate.P3 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[2];
+            sate.L1 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[3];
+            sate.L2 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[4];
+            sate.L3 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[5];
 
 
             //计算钟差
@@ -111,7 +111,7 @@ void ppp_calculate::ppp_clock(const o_file_date &ofile,const sp3_file &sp3file,c
                 QVector<clock_info>::const_iterator sate_find = NULL;
                 sate_find = std::find(clockfile.file[clock_item+k].GPS_epoch.begin(),
                                       clockfile.file[clock_item+k].GPS_epoch.end(),
-                                      ofile.satellite_file[i].GPS_satellite_epoch[j]);
+                                      ofile.satellite_file[i].satellite_epoch[j]);
                 sate_clock[k] = clockfile.file[clock_item+k].GPSS;
                 sate_clock[k+7] = sate_find->clock_bias;
             }
@@ -123,7 +123,7 @@ void ppp_calculate::ppp_clock(const o_file_date &ofile,const sp3_file &sp3file,c
                 QVector<sp3_sate>::const_iterator sate_find = NULL;
                 sate_find = std::find(sp3file.file[sp3_item+k].GPS_epoch.begin(),
                                       sp3file.file[sp3_item+k].GPS_epoch.end(),
-                                      ofile.satellite_file[i].GPS_satellite_epoch[j]);
+                                      ofile.satellite_file[i].satellite_epoch[j]);
                 sate_x[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
                 sate_y[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
                 sate_z[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
@@ -134,7 +134,7 @@ void ppp_calculate::ppp_clock(const o_file_date &ofile,const sp3_file &sp3file,c
             sate.position_x = math_function::lagrange(epoch.GPSS,sate_x,14);
             sate.position_y = math_function::lagrange(epoch.GPSS,sate_y,14);
             sate.position_z = math_function::lagrange(epoch.GPSS,sate_z,14);
-            sate.PRN = ofile.satellite_file[i].GPS_satellite_epoch[j].satellite_infomation;
+            sate.PRN = ofile.satellite_file[i].satellite_epoch[j].satellite_infomation;
             sate.clock = clock * ppp_calculate::c;
             epoch.sate_info.push_back(sate);
         }
