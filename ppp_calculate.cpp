@@ -1,4 +1,5 @@
 ﻿#include <algorithm>
+#include <iostream>
 
 #include "ppp_calculate.h"
 #include "gc_gpss.h"
@@ -29,7 +30,7 @@ void ppp_calculate::ppp_coordinate(const o_file_date &ofile, const sp3_file &sp3
         QVector<sp3_epoch_date>::const_iterator sp3_find_time_item = NULL;
         sp3_find_time_item = std::find_if(sp3file.file.begin(),sp3file.file.end(),sp3_GPSS_finder(find_time));
         int item = sp3_find_time_item - sp3file.file.begin(); //lagrange的插值起点
-
+        std::cout << item << std::endl;
         //寻找每一个对应卫星的lagrange的插值
         for(int j = 0; j<ofile.satellite_file[i].GPS_satellite_epoch.size(); j++)
         {
@@ -59,7 +60,6 @@ void ppp_calculate::ppp_coordinate(const o_file_date &ofile, const sp3_file &sp3
             epoch.sate_info.push_back(sate);
         }
         ppp.file.push_back(epoch);
-        int j = 0;
     }
 }
 

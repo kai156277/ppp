@@ -55,11 +55,11 @@ phase_shift::phase_shift()
 
 system_signal::system_signal()
     :GPS_P1(0),GPS_P2(0),GPS_P5(0),
-     GPS_L1(0),GPS_L2(0),GPS_L5(0),
-     GLONASS_G1(0),GLONASS_G2(0),GLONASS_G3(0),
-     GLONASS_L1(0),GLONASS_L2(0),GLONASS_L3(0),
-     BDS_B1(0),BDS_B2(0),BDS_B3(0),
-     BDS_L1(0),BDS_L2(0),BDS_L3(0)
+     GPS_L1(0),GPS_L2(0),GPS_L5(0)
+//     GLONASS_G1(0),GLONASS_G2(0),GLONASS_G3(0),
+//     GLONASS_L1(0),GLONASS_L2(0),GLONASS_L3(0),
+//     BDS_B1(0),BDS_B2(0),BDS_B3(0),
+//     BDS_L1(0),BDS_L2(0),BDS_L3(0)
 //     Galileo_E1(0),Galileo_E5a(0),Galileo_E5b(0),Galileo_E5(0),Galileo_E6(0),
 //     Galileo_L1(0),Galileo_L5a(0),Galileo_L5b(0),Galileo_L5(0),Galileo_L6(0),
 //     SBAS_P1(0),SBAS_P5(0),
@@ -74,18 +74,18 @@ system_signal::system_signal()
     GPS_L1_list << "L1C" << "L1S" << "L1L" << "L1X" << "L1P" << "L1W" << "L1Y" << "L1M";
     GPS_L2_list << "L2D" << "L2S" << "L2L" << "L2X" << "L2P" << "L2W" << "L2Y" << "L2M";
     GPS_L5_list << "L5I" << "L5Q" << "L5X";
-    GLONASS_G1_list << "C1C" << "C1P";
-    GLONASS_G2_list << "C2C" << "C2P";
-    GLONASS_G3_list << "C3I" << "C3Q" << "C3X";
-    GLONASS_L1_list << "L1C" << "L1P";
-    GLONASS_L2_list << "L2C" << "L2P";
-    GLONASS_L3_list << "L3I" << "L3Q" << "C3X";
-    BDS_B1_list << "C1I" << "C1Q" << "C1X";
-    BDS_B2_list << "C7I" << "C7Q" << "C7X";
-    BDS_B3_list << "C6I" << "C6Q" << "C6X";
-    BDS_L1_list << "L1I" << "L1Q" << "L1X";
-    BDS_L2_list << "L7I" << "L7Q" << "L7X";
-    BDS_L3_list << "L6I" << "L6Q" << "L6X";
+//    GLONASS_G1_list << "C1C" << "C1P";
+//    GLONASS_G2_list << "C2C" << "C2P";
+//    GLONASS_G3_list << "C3I" << "C3Q" << "C3X";
+//    GLONASS_L1_list << "L1C" << "L1P";
+//    GLONASS_L2_list << "L2C" << "L2P";
+//    GLONASS_L3_list << "L3I" << "L3Q" << "C3X";
+//    BDS_B1_list << "C1I" << "C1Q" << "C1X";
+//    BDS_B2_list << "C7I" << "C7Q" << "C7X";
+//    BDS_B3_list << "C6I" << "C6Q" << "C6X";
+//    BDS_L1_list << "L1I" << "L1Q" << "L1X";
+//    BDS_L2_list << "L7I" << "L7Q" << "L7X";
+//    BDS_L3_list << "L6I" << "L6Q" << "L6X";
 //    Galileo_E1_list  << "C1A" << "C1B" << "C1C" << "C1X" << "C1Z";
 //    Galileo_E5a_list << "C5I" << "C5Q" << "C5X";
 //    Galileo_E5b_list << "C7I" << "C7Q" << "C7X";

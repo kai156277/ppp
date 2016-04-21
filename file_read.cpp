@@ -303,6 +303,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
                 epoch.GPS_satellite_epoch.push_back(satellite_date);
                 break;//GPS
             }
+                /*只提供GPS
             case 'R':
             {
                 satellite_date.satellite_LLI.resize(6);
@@ -456,6 +457,7 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
             }
 
         }
+        epoch.number_of_satellite = epoch.GPS_satellite_epoch.size();
         obs.satellite_file.push_back(epoch);
     }
     ppp_o_file.close();
@@ -577,6 +579,8 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         //B
         for(int j = 0; j<sp3.heard.BDS_satellites; j++)
         {
+            readString = read.readLine();
+            /*
             sp3_sate_date sate_date;
             readString = read.readLine();
             sate_date.flag  = readString.mid(0,1);
@@ -590,6 +594,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
             sate_date.z_SD  = readString.mid(66,3).toInt();
             sate_date.clock_SD = readString.mid(69,4).toInt();
             epoch.BDS_epoch.push_back(sate_date);
+            */
         }
         //E
         for(int j = 0; j<sp3.heard.Galileo_satellites; j++)
@@ -621,6 +626,8 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         //R
         for(int j = 0; j<sp3.heard.GLONASS_satellites; j++)
         {
+            readString = read.readLine();
+            /*
             sp3_sate_date sate_date;
             readString = read.readLine();
             sate_date.flag  = readString.mid(0,1);
@@ -634,6 +641,7 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
             sate_date.z_SD  = readString.mid(66,3).toInt();
             sate_date.clock_SD = readString.mid(69,4).toInt();
             epoch.GLONASS_epoch.push_back(sate_date);
+            */
         }
         //S
         for(int j = 0; j<sp3.heard.SBAS_satellites; j++)
@@ -765,6 +773,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 {
                     for(int j = 0; j<clock.heard.GPS_satellites; j++)
                     {
+                        /*
                         clock_info sate_date;
                         sate_date.sate_name = readString.mid(3,3);
                         for(int k = 0; k<epoch.number_of_data; k++)
@@ -772,6 +781,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                             sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
                         }
                         epoch.GPS_epoch.push_back(sate_date);
+                        */
                         readString = read.readLine();
                     }
                 }
@@ -779,6 +789,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 {
                     for(int j = 0; j<clock.heard.GLONASS_satellites; j++)
                     {
+                        /*
                         clock_info sate_date;
                         sate_date.sate_name = readString.mid(3,3);
                         for(int k = 0; k<epoch.number_of_data; k++)
@@ -786,6 +797,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                             sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
                         }
                         epoch.GLONASS_epoch.push_back(sate_date);
+                        */
                         readString = read.readLine();
                     }
                 }
@@ -800,6 +812,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                 {
                     for(int j = 0; j<clock.heard.BDS_satellites; j++)
                     {
+                        /*
                         clock_info sate_date;
                         sate_date.sate_name = readString.mid(3,3);
                         for(int k = 0; k<epoch.number_of_data; k++)
@@ -807,6 +820,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
                             sate_date.record.push_back(readString.mid(40+20*k,20).toDouble());
                         }
                         epoch.BDS_epoch.push_back(sate_date);
+                        */
                         readString = read.readLine();
                     }
                 }
@@ -847,7 +861,7 @@ void file_read::phase_matching(const QVector<sys_record> &match_list, system_sig
             sys_list.GPS_L1 = each_phase_matching(sys_list.GPS_L1_list,match_list[i].observation_descriptor);
             sys_list.GPS_L2 = each_phase_matching(sys_list.GPS_L2_list,match_list[i].observation_descriptor);
             sys_list.GPS_L5 = each_phase_matching(sys_list.GPS_L5_list,match_list[i].observation_descriptor);
-        }
+        }/*只提供GPS
         else if(match_list[i].system_type == "R")
         {
             sys_list.GLONASS_G1 = each_phase_matching(sys_list.GLONASS_G1_list,match_list[i].observation_descriptor);
