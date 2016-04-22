@@ -519,6 +519,41 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
     ppp_clock_file.close();
 }
 
+void file_read::ppp_snx_read(const QString &file_path, snx_date &snx, QString mark_name)
+{
+    QFile ppp_snx_file( file_path );
+    if(!ppp_snx_file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can`t open" << file_path << endl;
+        exit( EXIT_FAILURE );
+    }
+    QTextStream read( &ppp_snx_file );
+    QString readString;
+
+    do
+    {
+        readString = read.readLine();
+    }while(readString.indexOf("+SOLUTION/ESTIMATE")<0);
+
+    do
+    {
+        readString = read.readLine();
+        if((readString.indexOf(mark_name)>=0)&&(readString.indexOf("STAX")>=0))
+        {
+            snx.station_x = readString.mid(47,21).toDouble();
+        }
+        else if((readString.indexOf(mark_name)>=0)&&(readString.indexOf("STAY")>=0))
+        {
+            snx.station_y = readString.mid(47,21).toDouble();
+        }
+        else if((readString.indexOf(mark_name)>=0)&&(readString.indexOf("STAZ")>=0))
+        {
+            snx.station_z = readString.mid(47,21).toDouble();
+        }
+    }while(readString.indexOf("-SOLUTION/ESTIMATE")<0);
+    ppp_snx_file.close();
+}
+
 void file_read::phase_matching(const QStringList &match_list, system_signal &sys_list)
 {
 

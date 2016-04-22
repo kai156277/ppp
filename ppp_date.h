@@ -12,6 +12,9 @@ public:
     double position_x;
     double position_y;
     double position_z;
+    double velocity_x;
+    double velocity_y;
+    double velocity_z;
     double clock;
     double elevation;
     double azimuth;

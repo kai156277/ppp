@@ -26,7 +26,9 @@ SOURCES += main.cpp \
     readfilepath.cpp \
     gc_gpss.cpp \
     ppp_calculate.cpp \
-    ppp_date.cpp
+    ppp_date.cpp \
+    snx_date.cpp \
+    coordinate.cpp
 
 HEADERS += \
     o_date.h \
@@ -38,4 +40,6 @@ HEADERS += \
     readfilepath.h \
     gc_gpss.h \
     ppp_calculate.h \
-    ppp_date.h
+    ppp_date.h \
+    snx_date.h \
+    coordinate.h
