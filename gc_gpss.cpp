@@ -3,7 +3,7 @@
 double GC_GPSS::JDGPSS = 2444244.5;
 
 GC_GPSS::GC_GPSS()
-    :JD(0),
+    :JD(0),DOY(0),
      Year(0),Month(0),Day(0),
      Hour(0),Minute(0),Second(0),
      GPSW(0),GPSS(0)
@@ -33,27 +33,12 @@ void GC_GPSS::setGC(int year, int month, int day,
     Day = day;
 }
 
-double GC_GPSS::getJD()
-{
-    return JD;
-}
-
-double GC_GPSS::getGPSS()
-{
-    return GPSS;
-}
-
 void GC_GPSS::clear()
 {
-    JD = 0;
+    JD = 0;DOY = 0;
     Year = 0;Month = 0;Day = 0;
     Hour = 0;Minute = 0;Second = 0;
     GPSW = 0;GPSS = 0;
-}
-
-int GC_GPSS::getGPSW()
-{
-    return GPSW;
 }
 
 void GC_GPSS::GCtoGPS()
@@ -82,6 +67,20 @@ void GC_GPSS::GPStoGC()
     Day=b-d-static_cast<int>(30.6001*e)+(JD + 0.5 - static_cast<int>(JD+0.5));
     Month=e-1-12*static_cast<int>(e/14);
     Year=c-4715-static_cast<int>((7+Month)/10);
+}
+
+void GC_GPSS::GPStoDOY()
+{
+    GCtoGPS();
+    GC_GPSS DOY_JD;
+    DOY_JD.Year = this->Year;
+    DOY_JD.Month = 1;
+    DOY_JD.Day = 1;
+    DOY_JD.Hour = 0;
+    DOY_JD.Minute = 0;
+    DOY_JD.Second = 0;
+    DOY_JD.GCtoGPS();
+    DOY = JD - DOY_JD.JD;
 }
 GC_GPSS::~GC_GPSS()
 {

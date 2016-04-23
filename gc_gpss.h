@@ -16,6 +16,7 @@ public:
     int Day;
     int GPSW;
     double GPSS;
+    int DOY;
     static double JDGPSS;
     void setGC(int year, int month, int day,
                double hour, double minute, double second);
@@ -23,9 +24,7 @@ public:
     void setJD(double jd);
     void GCtoGPS();
     void GPStoGC();
-    double getJD();
-    int getGPSW();
-    double getGPSS();
+    void GPStoDOY();
     void clear();
 };
 
