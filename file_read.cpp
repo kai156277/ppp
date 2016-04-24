@@ -5,13 +5,14 @@
 #include<QTextStream>
 #include<qdebug.h>
 #include<cmath>
-#include<ctype.h>
+#include<Eigen/Eigen>
 
 #include"file_read.h"
 #include"o_date.h"
 #include"gc_gpss.h"
 
 using namespace std;
+using namespace Eigen;
 
 file_read::file_read()
 {
@@ -552,6 +553,19 @@ void file_read::ppp_snx_read(const QString &file_path, snx_date &snx, QString ma
         }
     }while(readString.indexOf("-SOLUTION/ESTIMATE")<0);
     ppp_snx_file.close();
+}
+
+void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
+{
+    QFile ppp_ant_file( file_path );
+    if(!ppp_ant_file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can`t open" << file_path << endl;
+        exit( EXIT_FAILURE );
+    }
+    QTextStream read( &ppp_ant_file );
+    QString readString;
+
 }
 
 void file_read::phase_matching(const QStringList &match_list, system_signal &sys_list)
