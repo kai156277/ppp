@@ -1,10 +1,10 @@
-﻿#include "o_date.h"
+﻿#include "o_data.h"
 #include<QString>
 #include<QVector>
 #include<QList>
 #include<QStringList>
 
-o_heard_date::o_heard_date()
+o_heard::o_heard()
     :format_version(""),file_type(""),
     creating_program_name(""),creating_agency_name(""),creation_time(""),
     marker_name(""),marker_number(""),marke_type(""),
@@ -18,7 +18,7 @@ o_heard_date::o_heard_date()
 
 }
 
-o_sate_date::o_sate_date()
+o_sate::o_sate()
     :satellite_infomation("")
 {
     satellite_observation_value.resize(6);
@@ -26,7 +26,7 @@ o_sate_date::o_sate_date()
     satellite_signal_strength.resize(6);
 }
 
-o_epoch_date::o_epoch_date()
+o_epoch::o_epoch()
     :year(0),month(0),day(0),
     hour(0),minute(0),second(0),
     epoch_flag(0),number_of_satellite(0),clock_offset(0),
@@ -35,7 +35,7 @@ o_epoch_date::o_epoch_date()
 
 }
 
-o_file_date::o_file_date()
+o_file::o_file()
 {
 
 }

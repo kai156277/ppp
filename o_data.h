@@ -17,10 +17,10 @@ public:
     QStringList satellite_list;
 };
 
-class o_heard_date
+class o_heard
 {
 public:
-    o_heard_date();
+    o_heard();
 
     /*RINEX VERSION / TYPE*/
     QString format_version;
@@ -82,10 +82,10 @@ public:
     QString dbhz;
 };
 
-class o_sate_date
+class o_sate
 {
 public:
-    o_sate_date();
+    o_sate();
     QString satellite_infomation;
     /*
      * GPS--------P1,P2,P5,L1,L2,L5
@@ -96,10 +96,10 @@ public:
     QVector<int> satellite_signal_strength;
 };
 
-class o_epoch_date
+class o_epoch
 {
 public:
-    o_epoch_date();
+    o_epoch();
     int year;
     int month;
     int day;
@@ -111,14 +111,14 @@ public:
     double clock_offset;
     int GPSW;
     double GPSS;
-    QVector<o_sate_date> satellite_epoch;
+    QVector<o_sate> satellite_epoch;
 };
 
-class o_file_date
+class o_file
 {
 public:
-    o_file_date();
-    QVector<o_epoch_date> satellite_file;
+    o_file();
+    QVector<o_epoch> satellite_file;
 };
 
 /*用于选择P1,P2,P5,L1,L2,L5*/

@@ -1,4 +1,4 @@
-﻿#include "clock_date.h"
+﻿#include "clock_data.h"
 
 clock_file::clock_file()
     :heard()
@@ -33,7 +33,7 @@ clock_info::clock_info()
 
 }
 
-bool clock_info::operator ==(const o_sate_date &left) const
+bool clock_info::operator ==(const o_sate &left) const
 {
     if(this->sate_name == left.satellite_infomation)
     {
@@ -51,6 +51,4 @@ clock_epoch::clock_epoch()
      hour(0),minute(0),second(0),GPSS(0),GPSW(0),number_of_data(0)
 {
     GPS_epoch.reserve(30);
-    BDS_epoch.reserve(20);
-    GLONASS_epoch.reserve(30);
 }

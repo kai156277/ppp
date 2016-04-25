@@ -5,7 +5,7 @@
 #include<QStringList>
 #include<QVector>
 
-#include"o_date.h"
+#include"o_data.h"
 
 class station_infomation
 {
@@ -63,7 +63,7 @@ class clock_info
 {
 public:
     clock_info();
-    bool operator == (const o_sate_date &left) const;
+    bool operator == (const o_sate &left) const;
     QString sate_name;           //Receiver or Satellite Name
     double clock_bias;
     double clock_bias_sigma;

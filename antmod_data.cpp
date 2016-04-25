@@ -1,7 +1,7 @@
-﻿#include "antmod_date.h"
+﻿#include "antmod_data.h"
 
 
-satellite_antmod_date::satellite_antmod_date()
+satellite_antmod::satellite_antmod()
     :antenna_type(""),sate_info(""),
     DAZI(0),ZEN1(0),ZEN2(0),DZEN(0), num_of_frequencies(0),
     start_time(""),end_time(""),frequency_type(""),
@@ -13,7 +13,7 @@ satellite_antmod_date::satellite_antmod_date()
 }
 
 
-station_antmod_date::station_antmod_date()
+station_antmod::station_antmod()
     :antenna_type(""),receiver_info(""),
     DAZI(0),ZEN1(0),ZEN2(0),DZEN(0), num_of_frequencies(0),
     start_time(""),end_time(""),frequency_type(""),

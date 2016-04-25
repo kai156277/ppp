@@ -1,4 +1,4 @@
-﻿#include "ppp_date.h"
+﻿#include "ppp_data.h"
 
 ppp_sate::ppp_sate()
     :PRN(""),position_x(0),position_y(0),position_z(0),clock(0),

@@ -4,18 +4,18 @@
 #include<QVector>
 #include<QString>
 
-#include"o_date.h"
-#include"sp3_date.h"
-#include"clock_date.h"
-#include"ppp_date.h"
-#include"snx_date.h"
+#include"o_data.h"
+#include"sp3_data.h"
+#include"clock_data.h"
+#include"ppp_data.h"
+#include"snx_data.h"
 
 class ppp_calculate
 {
 public:
     ppp_calculate();
-    void ppp_coordinate_clock(const o_file_date &ofile,const sp3_file &sp3file,const clock_file &clockfile,ppp_file &ppp);
-    void set_station_coordinate(const snx_date &snx);
+    void ppp_coordinate_clock(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,ppp_file &ppp);
+    void set_station_coordinate(const snx_data &snx);
 private:
     void sate_angle(ppp_sate &date);
     void sate_sagnac(ppp_sate &date);

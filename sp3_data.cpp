@@ -1,4 +1,4 @@
-﻿#include "sp3_date.h"
+﻿#include "sp3_data.h"
 
 sp3_heard::sp3_heard()
     :mode_flag(""),
@@ -22,7 +22,7 @@ sp3_sate::sp3_sate()
 
 }
 
-bool sp3_sate::operator ==(const o_sate_date &left) const
+bool sp3_sate::operator ==(const o_sate &left) const
 {
     if(this->sate_info == left.satellite_infomation)
     {

@@ -55,7 +55,7 @@ ppp_calculate::ppp_calculate()
 
 }
 
-void ppp_calculate::ppp_coordinate_clock(const o_file_date &ofile,const sp3_file &sp3file,const clock_file &clockfile, ppp_file &ppp)
+void ppp_calculate::ppp_coordinate_clock(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile, ppp_file &ppp)
 {
     //钟差
     double interval = clockfile.file[1].GPSS - clockfile.file[0].GPSS;
@@ -174,7 +174,7 @@ void ppp_calculate::ppp_coordinate_clock(const o_file_date &ofile,const sp3_file
     }
 }
 
-void ppp_calculate::set_station_coordinate(const snx_date &snx)
+void ppp_calculate::set_station_coordinate(const snx_data &snx)
 {
     station_x = snx.station_x;
     station_y = snx.station_y;

@@ -4,7 +4,7 @@
 #include<QString>
 #include<QVector>
 
-#include"o_date.h"
+#include"o_data.h"
 
 class sp3_heard
 {
@@ -60,7 +60,7 @@ class sp3_sate
 {
 public:
     sp3_sate();
-    bool operator == (const o_sate_date &left) const;
+    bool operator == (const o_sate &left) const;
     QString flag;               //has position & velocity
     QString sate_info;
     double x;                   //position or velocity

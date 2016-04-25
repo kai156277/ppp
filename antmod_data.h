@@ -5,10 +5,10 @@
 #include<QVector>
 #include <Eigen/Eigen>
 
-class satellite_antmod_date
+class satellite_antmod
 {
 public:
-    satellite_antmod_date();
+    satellite_antmod();
     QString antenna_type;
     QString sate_info;
     double DAZI;
@@ -20,13 +20,13 @@ public:
     QString end_time;
     QString frequency_type;
 
-    const QString L1_frequency;
+    QString L1_frequency;
     double L1_APC_x;       //x方向上卫星天线相位中心与卫星中心相对偏差
     double L1_APC_y;
     double L1_APC_z;
     QVector<double> L1_NOAZI;  //PCV 天线相位中心偏差
 
-    const QString L2_frequency;
+    QString L2_frequency;
     double L2_APC_x;       //x方向上卫星天线相位中心与卫星中心相对偏差
     double L2_APC_y;
     double L2_APC_z;
@@ -34,10 +34,10 @@ public:
 
 };
 
-class station_antmod_date
+class station_antmod
 {
 public:
-    station_antmod_date();
+    station_antmod();
     QString antenna_type;
     QString receiver_info;
     double DAZI;
@@ -49,13 +49,13 @@ public:
     QString end_time;
     QString frequency_type;
 
-    const QString L1_frequency;
+    QString L1_frequency;
     double L1_APC_N;       //x方向上卫星天线相位中心与卫星中心相对偏差
     double L1_APC_E;
     double L1_APC_U;
     Eigen::MatrixXd L1_NOAZI;  //PCV 天线相位中心偏差
 
-    const QString L2_frequency;
+    QString L2_frequency;
     double L2_APC_N;       //x方向上卫星天线相位中心与卫星中心相对偏差
     double L2_APC_E;
     double L2_APC_U;
@@ -66,8 +66,8 @@ class antmod_file
 {
 public:
     antmod_file();
-    QVector<satellite_antmod_date> sate;
-    QVector<station_antmod_date> stat;
+    QVector<satellite_antmod> satellite;
+    QVector<station_antmod> station;
 };
 
 #endif // ANTMOD_DATE_H

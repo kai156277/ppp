@@ -18,31 +18,31 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    o_date.cpp \
     file_read.cpp \
-    sp3_date.cpp \
-    clock_date.cpp \
     math_function.cpp \
     matching.cpp \
     readfilepath.cpp \
     gc_gpss.cpp \
     ppp_calculate.cpp \
-    ppp_date.cpp \
-    snx_date.cpp \
     coordinate.cpp \
-    antmod_date.cpp
+    antmod_data.cpp \
+    clock_data.cpp \
+    o_data.cpp \
+    ppp_data.cpp \
+    snx_data.cpp \
+    sp3_data.cpp
 
 HEADERS += \
-    o_date.h \
     file_read.h \
-    sp3_date.h \
-    clock_date.h \
     math_function.h \
     matching.h \
     readfilepath.h \
     gc_gpss.h \
     ppp_calculate.h \
-    ppp_date.h \
-    snx_date.h \
     coordinate.h \
-    antmod_date.h
+    antmod_data.h \
+    clock_data.h \
+    o_data.h \
+    ppp_data.h \
+    snx_data.h \
+    sp3_data.h

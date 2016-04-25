@@ -8,7 +8,7 @@
 #include<Eigen/Eigen>
 
 #include"file_read.h"
-#include"o_date.h"
+#include"o_data.h"
 #include"gc_gpss.h"
 
 using namespace std;
@@ -19,7 +19,7 @@ file_read::file_read()
 
 }
 
-void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
+void file_read::ppp_o_read(const QString &file_path, o_file &obs)
 {
     QFile ppp_o_file( file_path );
     if(!ppp_o_file.open(QIODevice::ReadOnly))
@@ -31,105 +31,105 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
     QString readString;
 
     /*read_heard*/
-    o_heard_date heard_date;
+    o_heard heard_data;
     do
     {
         readString = read.readLine();
         if(readString.indexOf("RINEX VERSION / TYPE") >= 0)
         {
-            heard_date.format_version        = readString.mid(0,9).simplified();
-            heard_date.file_type             = readString.mid(40,1);
+            heard_data.format_version        = readString.mid(0,9).trimmed();
+            heard_data.file_type             = readString.mid(40,1);
         }
         else if(readString.indexOf("PGM / RUN BY / DATE") >= 0)
         {
-            heard_date.creating_program_name = readString.mid(0,20).simplified();
-            heard_date.creating_agency_name  = readString.mid(20,20).simplified();
-            heard_date.creation_time         = readString.mid(40,20).simplified();
+            heard_data.creating_program_name = readString.mid(0,20).trimmed();
+            heard_data.creating_agency_name  = readString.mid(20,20).trimmed();
+            heard_data.creation_time         = readString.mid(40,20).trimmed();
         }
         else if(readString.indexOf("MARKER NAME") >= 0)
         {
-            heard_date.marker_name = readString.mid(0,60).simplified();
+            heard_data.marker_name = readString.mid(0,60).trimmed();
         }
         else if(readString.indexOf("MARKER NUMBER") >= 0)
         {
-            heard_date.marker_number = readString.mid(0,60).simplified();
+            heard_data.marker_number = readString.mid(0,60).trimmed();
         }
         else if(readString.indexOf("MARKER TYPE") >= 0)
         {
-            heard_date.marke_type = readString.mid(0,60).simplified();
+            heard_data.marke_type = readString.mid(0,60).trimmed();
         }
         else if(readString.indexOf("OBSERVER / AGENCY") >= 0)
         {
-            heard_date.observer_name = readString.mid(0,20);
-            heard_date.agency_name   = readString.mid(20,40).simplified();
+            heard_data.observer_name = readString.mid(0,20);
+            heard_data.agency_name   = readString.mid(20,40).trimmed();
         }
         else if(readString.indexOf("REC # / TYPE / VERS") >= 0)
         {
-            heard_date.receiver_number  = readString.mid(0,20).simplified();
-            heard_date.receiver_type    = readString.mid(20,20).simplified();
-            heard_date.receiver_version = readString.mid(40,20).simplified();
+            heard_data.receiver_number  = readString.mid(0,20).trimmed();
+            heard_data.receiver_type    = readString.mid(20,20).trimmed();
+            heard_data.receiver_version = readString.mid(40,20).trimmed();
         }
         else if(readString.indexOf("ANT # / TYPE") >= 0)
         {
-            heard_date.antenna_number = readString.mid(0,20).simplified();
-            heard_date.antenna_type   = readString.mid(20,20).simplified();
+            heard_data.antenna_number = readString.mid(0,20).trimmed();
+            heard_data.antenna_type   = readString.mid(20,20).trimmed();
         }
         else if(readString.indexOf("APPROX POSITION XYZ") >= 0)
         {
-            heard_date.position_X = readString.mid(0,14).toDouble();
-            heard_date.position_Y = readString.mid(14,14).toDouble();
-            heard_date.position_Z = readString.mid(28,14).toDouble();
+            heard_data.position_X = readString.mid(0,14).toDouble();
+            heard_data.position_Y = readString.mid(14,14).toDouble();
+            heard_data.position_Z = readString.mid(28,14).toDouble();
         }
         else if(readString.indexOf("ANTENNA: DELTA H/E/N") >= 0)
         {
-            heard_date.antenna_H = readString.mid(0,14).toDouble();
-            heard_date.antenna_E = readString.mid(0,14).toDouble();
-            heard_date.antenna_N = readString.mid(0,14).toDouble();
+            heard_data.antenna_H = readString.mid(0,14).toDouble();
+            heard_data.antenna_E = readString.mid(0,14).toDouble();
+            heard_data.antenna_N = readString.mid(0,14).toDouble();
         }
         else if(readString.indexOf("SYS / # / OBS TYPES") >= 0)
         {
             if(readString.mid(0,1) == "G")
             {
-                heard_date.GPS_number = readString.mid(1,5).toInt();
-                int i = ceil(heard_date.GPS_number / 13.0); //有几行同样卫星的数据
+                heard_data.GPS_number = readString.mid(1,5).toInt();
+                int i = ceil(heard_data.GPS_number / 13.0); //有几行同样卫星的数据
                 QString sate_info;
                 for(; i>0; i--)
                 {
-                   sate_info += readString.mid(7,53);
-                   if( i!=1 )
-                   {
-                       readString = read.readLine();
-                   }
+                    sate_info += readString.mid(7,53);
+                    if( i!=1 )
+                    {
+                        readString = read.readLine();
+                    }
                 }
-                sate_info = sate_info.simplified();
-                heard_date.observation_descriptor = sate_info.split(' ');
+                sate_info = sate_info.trimmed();
+                heard_data.observation_descriptor = sate_info.split(' ');
             }
 
         }
         else if(readString.indexOf("INTERVAL") >= 0)
         {
-            heard_date.interval = readString.mid(0,10).toDouble();
+            heard_data.interval = readString.mid(0,10).toDouble();
         }
         else if(readString.indexOf("TIME OF FIRST OBS") >= 0)
         {
-            heard_date.first_time = readString.mid(0,43);
-            heard_date.time_system = readString.mid(43,8).simplified();
+            heard_data.first_time = readString.mid(0,43);
+            heard_data.time_system = readString.mid(43,8).trimmed();
         }
         else if(readString.indexOf("SIGNAL STRENGTH UNIT") >= 0)
         {
-            heard_date.dbhz = readString.mid(0,20).simplified();
+            heard_data.dbhz = readString.mid(0,20).trimmed();
         }
     }while(readString.indexOf("END OF HEADER")<=0);
 
     /*phase matching*/
     system_signal sys_signal;
-    phase_matching(heard_date.observation_descriptor ,sys_signal);
+    phase_matching(heard_data.observation_descriptor ,sys_signal);
 
     /*date*/
 
     while(!read.atEnd())
     {
-        o_epoch_date epoch;
+        o_epoch epoch;
         readString = read.readLine();
         epoch.year   = readString.mid(2,4).toInt();
         epoch.month  = readString.mid(6,3).toInt();
@@ -151,45 +151,45 @@ void file_read::ppp_o_read(const QString &file_path, o_file_date &obs)
         for(int i = 0; i<epoch.number_of_satellite; i++)
         {
             readString = read.readLine();
-            o_sate_date satellite_date;
-            satellite_date.satellite_infomation = readString.mid(0,3);
+            o_sate satellite_data;
+            satellite_data.satellite_infomation = readString.mid(0,3);
 
-            if(satellite_date.satellite_infomation.mid(0,1) == "G")
+            if(satellite_data.satellite_infomation.mid(0,1) == "G")
             {
                 QVector<QString> sate;
-                sate.reserve(heard_date.GPS_number);
-                for(int j = 0;j<heard_date.GPS_number ;j++)
+                sate.reserve(heard_data.GPS_number);
+                for(int j = 0;j<heard_data.GPS_number ;j++)
                 {
                     sate.push_back(readString.mid(3+j*16,16));
                 }
                 //添加一个用于指示没有匹配的观测信号的状况
                 sate.push_back("0000000000000000");
 
-                satellite_date.satellite_observation_value[0] = sate[sys_signal.GPS_P1].mid(0,14).toDouble();
-                satellite_date.satellite_LLI[0] = sate[sys_signal.GPS_P1].mid(14,1).toInt();
-                satellite_date.satellite_signal_strength[0] = sate[sys_signal.GPS_P1].mid(15,1).toInt();
+                satellite_data.satellite_observation_value[0] = sate[sys_signal.GPS_P1].mid(0,14).toDouble();
+                satellite_data.satellite_LLI[0] = sate[sys_signal.GPS_P1].mid(14,1).toInt();
+                satellite_data.satellite_signal_strength[0] = sate[sys_signal.GPS_P1].mid(15,1).toInt();
 
-                satellite_date.satellite_observation_value[1] = sate[sys_signal.GPS_P2].mid(0,14).toDouble();
-                satellite_date.satellite_LLI[1] = sate[sys_signal.GPS_P2].mid(14,1).toInt();
-                satellite_date.satellite_signal_strength[1] = sate[sys_signal.GPS_P2].mid(15,1).toInt();
+                satellite_data.satellite_observation_value[1] = sate[sys_signal.GPS_P2].mid(0,14).toDouble();
+                satellite_data.satellite_LLI[1] = sate[sys_signal.GPS_P2].mid(14,1).toInt();
+                satellite_data.satellite_signal_strength[1] = sate[sys_signal.GPS_P2].mid(15,1).toInt();
 
-                satellite_date.satellite_observation_value[2] = sate[sys_signal.GPS_P5].mid(0,14).toDouble();
-                satellite_date.satellite_LLI[2] = sate[sys_signal.GPS_P5].mid(14,1).toInt();
-                satellite_date.satellite_signal_strength[2] = sate[sys_signal.GPS_P5].mid(15,1).toInt();
+                satellite_data.satellite_observation_value[2] = sate[sys_signal.GPS_P5].mid(0,14).toDouble();
+                satellite_data.satellite_LLI[2] = sate[sys_signal.GPS_P5].mid(14,1).toInt();
+                satellite_data.satellite_signal_strength[2] = sate[sys_signal.GPS_P5].mid(15,1).toInt();
 
-                satellite_date.satellite_observation_value[3] = sate[sys_signal.GPS_L1].mid(0,14).toDouble();
-                satellite_date.satellite_LLI[3] = sate[sys_signal.GPS_L1].mid(14,1).toInt();
-                satellite_date.satellite_signal_strength[3] = sate[sys_signal.GPS_L1].mid(15,1).toInt();
+                satellite_data.satellite_observation_value[3] = sate[sys_signal.GPS_L1].mid(0,14).toDouble();
+                satellite_data.satellite_LLI[3] = sate[sys_signal.GPS_L1].mid(14,1).toInt();
+                satellite_data.satellite_signal_strength[3] = sate[sys_signal.GPS_L1].mid(15,1).toInt();
 
-                satellite_date.satellite_observation_value[4] = sate[sys_signal.GPS_L2].mid(0,14).toDouble();
-                satellite_date.satellite_LLI[4] = sate[sys_signal.GPS_L2].mid(14,1).toInt();
-                satellite_date.satellite_signal_strength[4] = sate[sys_signal.GPS_L2].mid(15,1).toInt();
+                satellite_data.satellite_observation_value[4] = sate[sys_signal.GPS_L2].mid(0,14).toDouble();
+                satellite_data.satellite_LLI[4] = sate[sys_signal.GPS_L2].mid(14,1).toInt();
+                satellite_data.satellite_signal_strength[4] = sate[sys_signal.GPS_L2].mid(15,1).toInt();
 
-                satellite_date.satellite_observation_value[5] = sate[sys_signal.GPS_L5].mid(0,14).toDouble();
-                satellite_date.satellite_LLI[5] = sate[sys_signal.GPS_L5].mid(14,1).toInt();
-                satellite_date.satellite_signal_strength[5] = sate[sys_signal.GPS_L5].mid(15,1).toInt();
+                satellite_data.satellite_observation_value[5] = sate[sys_signal.GPS_L5].mid(0,14).toDouble();
+                satellite_data.satellite_LLI[5] = sate[sys_signal.GPS_L5].mid(14,1).toInt();
+                satellite_data.satellite_signal_strength[5] = sate[sys_signal.GPS_L5].mid(15,1).toInt();
 
-                epoch.satellite_epoch.push_back(satellite_date);
+                epoch.satellite_epoch.push_back(satellite_data);
             }
         }
         epoch.number_of_satellite = epoch.satellite_epoch.size();
@@ -221,10 +221,10 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
     sp3.heard.minute     = readString.mid(16,3).toInt();
     sp3.heard.second     = readString.mid(19,12).toDouble();
     sp3.heard.number_of_epoch = readString.mid(31,8).toInt();
-    sp3.heard.data_use   = readString.mid(39,6).simplified();
-    sp3.heard.coordinate_system = readString.mid(45,6).simplified();
-    sp3.heard.orbit_type = readString.mid(51,4).simplified();
-    sp3.heard.agency     = readString.mid(55,5).simplified();
+    sp3.heard.data_use   = readString.mid(39,6).trimmed();
+    sp3.heard.coordinate_system = readString.mid(45,6).trimmed();
+    sp3.heard.orbit_type = readString.mid(51,4).trimmed();
+    sp3.heard.agency     = readString.mid(55,5).trimmed();
 
     /*##*/
     readString = read.readLine();
@@ -321,19 +321,19 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         //G
         for(int j = 0; j<sp3.heard.GPS_satellites; j++)
         {
-            sp3_sate sate_date;
+            sp3_sate sate_data;
             readString = read.readLine();
-            sate_date.flag  = readString.mid(0,1);
-            sate_date.sate_info = readString.mid(1,3);
-            sate_date.x     = readString.mid(4,14).toDouble();
-            sate_date.y     = readString.mid(18,14).toDouble();
-            sate_date.z     = readString.mid(32,14).toDouble();
-            sate_date.clock = readString.mid(46,14).toDouble();
-            sate_date.x_SD  = readString.mid(60,3).toInt();
-            sate_date.y_SD  = readString.mid(63,3).toInt();
-            sate_date.z_SD  = readString.mid(66,3).toInt();
-            sate_date.clock_SD = readString.mid(69,4).toInt();
-            epoch.GPS_epoch.push_back(sate_date);
+            sate_data.flag  = readString.mid(0,1);
+            sate_data.sate_info = readString.mid(1,3);
+            sate_data.x     = readString.mid(4,14).toDouble();
+            sate_data.y     = readString.mid(18,14).toDouble();
+            sate_data.z     = readString.mid(32,14).toDouble();
+            sate_data.clock = readString.mid(46,14).toDouble();
+            sate_data.x_SD  = readString.mid(60,3).toInt();
+            sate_data.y_SD  = readString.mid(63,3).toInt();
+            sate_data.z_SD  = readString.mid(66,3).toInt();
+            sate_data.clock_SD = readString.mid(69,4).toInt();
+            epoch.GPS_epoch.push_back(sate_data);
         }
         //读取GPS卫星之后的信息
         for(int j = 0; j<sp3.heard.after_GPS; j++)
@@ -366,27 +366,27 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
         {
             clock.heard.rinex_format_version = readString.mid(0,9);
             clock.heard.rinex_file_type      = readString.mid(20,1);
-            clock.heard.satellite_system     = readString.mid(40,20).simplified();
+            clock.heard.satellite_system     = readString.mid(40,20).trimmed();
         }
         else if(readString.indexOf("PGM / RUN BY / DATE")>=0)
         {
-            clock.heard.creating_program_name = readString.mid(0,20).simplified();
-            clock.heard.creating_agency_name  = readString.mid(20,20).simplified();
-            clock.heard.creation_time         = readString.mid(40,20).simplified();
+            clock.heard.creating_program_name = readString.mid(0,20).trimmed();
+            clock.heard.creating_agency_name  = readString.mid(20,20).trimmed();
+            clock.heard.creation_time         = readString.mid(40,20).trimmed();
         }
         else if(readString.indexOf("# / TYPES OF DATA")>=0)
         {
             clock.heard.clock_type_num = readString.mid(0,6).toInt();
             for(int i = 0; i<clock.heard.clock_type_num; i++)
             {
-                clock.heard.clock_type.push_back(readString.mid(6+i*6+6).simplified());
+                clock.heard.clock_type.push_back(readString.mid(6+i*6+6).trimmed());
             }
         }
         else if(readString.indexOf("# OF SOLN STA / TRF")>=0)
         {
             clock.heard.reference_num   = readString.mid(0,6).toInt();
             clock.heard.satation_info.reserve(clock.heard.reference_num);
-            clock.heard.reference_frame = readString.mid(10,50).simplified();
+            clock.heard.reference_frame = readString.mid(10,50).trimmed();
         }
         else if(readString.indexOf("SOLN STA NAME / NUM")>=0)
         {
@@ -520,7 +520,7 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
     ppp_clock_file.close();
 }
 
-void file_read::ppp_snx_read(const QString &file_path, snx_date &snx, QString mark_name)
+void file_read::ppp_snx_read(const QString &file_path, snx_data &snx, QString mark_name)
 {
     QFile ppp_snx_file( file_path );
     if(!ppp_snx_file.open(QIODevice::ReadOnly))
@@ -557,6 +557,7 @@ void file_read::ppp_snx_read(const QString &file_path, snx_date &snx, QString ma
 
 void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
 {
+    /*Open antmond file and Create input stream---------------------------------*/
     QFile ppp_ant_file( file_path );
     if(!ppp_ant_file.open(QIODevice::ReadOnly))
     {
@@ -566,6 +567,179 @@ void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
     QTextStream read( &ppp_ant_file );
     QString readString;
 
+    /*read header of antmod file------------------------------------------------*/
+    while(read.readLine().indexOf("END OF HEADER")<0)
+    {}
+
+    /*read antmond file data----------------------------------------------------*/
+    do
+    {
+        readString = read.readLine();
+
+        if(readString.indexOf("START OF ANTENNA")>=0)
+        {
+    /*use DAZI value to judge antenna type--------------------------------------*/
+            QString antenna_type,name;
+            QString DAZI = "";
+            do
+            {
+                readString = read.readLine();
+                if(readString.indexOf("TYPE / SERIAL NO")>=0)
+                {
+                    antenna_type = readString.mid(0,20).trimmed();
+                    name = readString.mid(20,20).trimmed();
+                }
+                else if(readString.indexOf("DAZI")>=0)
+                {
+                    DAZI = readString.mid(0,8).trimmed();
+                }
+            }while(readString.indexOf("DAZI")<0);
+    /*if antenna type is satellite----------------------------------------------*/
+            if(DAZI == "0.0")
+            {
+                satellite_antmod sate;
+                sate.antenna_type = antenna_type;
+                sate.sate_info = name;
+                sate.DAZI = DAZI.toDouble();
+                do
+                {
+                    readString = read.readLine();
+                    if(readString.indexOf("ZEN1 / ZEN2 / DZEN")>=0)
+                    {
+                        sate.ZEN1 = readString.mid(0,8).toDouble();
+                        sate.ZEN2 = readString.mid(8,6).toDouble();
+                        sate.DZEN = readString.mid(14,6).toDouble();
+                    }
+                    else if(readString.indexOf("# OF FREQUENCIES")>=0)
+                    {
+                        sate.num_of_frequencies = readString.mid(0,6).toInt();
+                    }
+                    else if(readString.indexOf("VALID FROM")>=0)
+                    {
+                        sate.start_time = readString.mid(2,41);
+                    }
+                    else if(readString.indexOf("VALID UNTIL")>=0)
+                    {
+                        sate.end_time = readString.mid(2,41);
+                    }
+                    else if(readString.indexOf("SINEX CODE")>=0)
+                    {
+                        sate.frequency_type = readString.mid(0,60).trimmed();
+                    }
+                    else if(readString.indexOf("START OF FREQUENCY")>=0)
+                    {
+    /*L1 frequency--------------------------------------------------------------*/
+                        if(readString.indexOf("G01")>=0)
+                        {
+                            readString = read.readLine();
+                            sate.L1_APC_x = readString.mid(0,10).toDouble();
+                            sate.L1_APC_y = readString.mid(10,10).toDouble();
+                            sate.L1_APC_z = readString.mid(20,10).toDouble();
+                            readString = read.readLine().simplified();
+                            QStringList NOAZI = readString.split(" ");
+                            for(int i = 1; i<NOAZI.size(); i++)
+                            {
+                                sate.L1_NOAZI.push_back(NOAZI[i].toDouble());
+                            }
+                        }
+    /*L2 frequency--------------------------------------------------------------*/
+                        else if(readString.indexOf("G02")>=0)
+                        {
+                            readString = read.readLine();
+                            sate.L2_APC_x = readString.mid(0,10).toDouble();
+                            sate.L2_APC_y = readString.mid(10,10).toDouble();
+                            sate.L2_APC_z = readString.mid(20,10).toDouble();
+                            readString = read.readLine().simplified();
+                            QStringList NOAZI = readString.split(" ");
+                            for(int i = 1; i<NOAZI.size(); i++)
+                            {
+                                sate.L2_NOAZI.push_back(NOAZI[i].toDouble());
+                            }
+                        }
+                    }
+                }while(readString.indexOf("END OF ANTENNA")<0);
+                ant.satellite.push_back(sate);
+            }
+    /*if antenna type is station------------------------------------------------*/
+            else if(DAZI == "5.0")
+            {
+                station_antmod stat;
+                stat.antenna_type = antenna_type;
+                stat.receiver_info = name;
+                stat.DAZI = DAZI.toDouble();
+                do
+                {
+                    readString = read.readLine();
+                    if(readString.indexOf("ZEN1 / ZEN2 / DZEN")>=0)
+                    {
+                        stat.ZEN1 = readString.mid(0,8).toDouble();
+                        stat.ZEN2 = readString.mid(8,6).toDouble();
+                        stat.DZEN = readString.mid(14,6).toDouble();
+                    }
+                    else if(readString.indexOf("# OF FREQUENCIES")>=0)
+                    {
+                        stat.num_of_frequencies = readString.mid(0,6).toInt();
+                    }
+                    else if(readString.indexOf("VALID FROM")>=0)
+                    {
+                        stat.start_time = readString.mid(2,41);
+                    }
+                    else if(readString.indexOf("VALID UNTIL")>=0)
+                    {
+                        stat.end_time = readString.mid(2,41);
+                    }
+                    else if(readString.indexOf("SINEX CODE")>=0)
+                    {
+                        stat.frequency_type = readString.mid(0,60).trimmed();
+                    }
+                    else if(readString.indexOf("START OF FREQUENCY")>=0)
+                    {
+    /*L1 frequency--------------------------------------------------------------*/
+                        int line = 73;
+                        int list = stat.ZEN2 / stat.DZEN + 1 ;
+                        if(readString.indexOf("G01")>=0)
+                        {
+                            readString = read.readLine();
+                            stat.L1_APC_N = readString.mid(0,10).toDouble();
+                            stat.L1_APC_E = readString.mid(10,10).toDouble();
+                            stat.L1_APC_U = readString.mid(20,10).toDouble();
+                            read.readLine();
+                            stat.L1_NOAZI =  MatrixXd::Random(line,list);
+                            for(int i = 0; i<73; i++)
+                            {
+                                readString = read.readLine().simplified();
+                                QStringList NOAZI = readString.split(" ");
+                                for(int j = 1; j<NOAZI.size(); j++)
+                                {
+                                    stat.L1_NOAZI(i,j-1) = NOAZI[j].toDouble();
+                                }
+                            }
+                        }
+    /*L2 frequency--------------------------------------------------------------*/
+                        else if(readString.indexOf("G02")>=0)
+                        {
+                            readString = read.readLine();
+                            stat.L2_APC_N = readString.mid(0,10).toDouble();
+                            stat.L2_APC_E = readString.mid(10,10).toDouble();
+                            stat.L2_APC_U = readString.mid(20,10).toDouble();
+                            read.readLine();
+                            stat.L2_NOAZI = MatrixXd::Random(line,list);
+                            for(int i = 0; i<73; i++)
+                            {
+                                readString = read.readLine().simplified();
+                                QStringList NOAZI = readString.split(" ");
+                                for(int j = 1; j<NOAZI.size(); j++)
+                                {
+                                    stat.L2_NOAZI(i,j-1) = NOAZI[j].toDouble();
+                                }
+                            }
+                        }
+                    }
+                }while(readString.indexOf("END OF ANTENNA")<0);
+                ant.station.push_back(stat);
+            }
+        }
+    }while(!read.atEnd());
 }
 
 void file_read::phase_matching(const QStringList &match_list, system_signal &sys_list)

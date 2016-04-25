@@ -3,10 +3,10 @@
 
 #include<QString>
 
-class snx_date
+class snx_data
 {
 public:
-    snx_date();
+    snx_data();
     QString marker_name;
     double station_x;
     double station_y;
