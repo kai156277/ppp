@@ -24,7 +24,7 @@ public:
     void setJD(double jd);
     void GCtoGPS();
     void GPStoGC();
-    void GPStoDOY();
+    void GCtoDOY();
     void clear();
 };
 

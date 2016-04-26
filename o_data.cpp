@@ -36,6 +36,7 @@ o_epoch::o_epoch()
 }
 
 o_file::o_file()
+    :heard()
 {
 
 }

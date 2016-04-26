@@ -69,7 +69,7 @@ void GC_GPSS::GPStoGC()
     Year=c-4715-static_cast<int>((7+Month)/10);
 }
 
-void GC_GPSS::GPStoDOY()
+void GC_GPSS::GCtoDOY()
 {
     GCtoGPS();
     GC_GPSS DOY_JD;

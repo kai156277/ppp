@@ -118,6 +118,7 @@ class o_file
 {
 public:
     o_file();
+    o_heard heard;
     QVector<o_epoch> satellite_file;
 };
 

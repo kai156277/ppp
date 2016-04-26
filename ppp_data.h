@@ -12,12 +12,16 @@ public:
     double position_x;
     double position_y;
     double position_z;
+    double position_n;
+    double position_e;
+    double position_u;
     double velocity_x;
     double velocity_y;
     double velocity_z;
     double clock;
     double elevation;
     double azimuth;
+    double distance;
     double P1;
     double P2;
     double L1;
@@ -27,7 +31,7 @@ public:
     double relativity;
     double sagnac;
     double tide_effect;
-    double antenna_height;
+    double receiver_antenna_height;
     double antenna;
     double offsetL1;
     double offsetL2;

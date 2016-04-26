@@ -29,14 +29,17 @@ int main()
      * QString fileType = "*.sp3";
      * readFilePath::readFile(filePath,pathName,fileType);
      */
-
-    read.ppp_snx_read("C:/PPP/readFile/snx/igs14P1783.snx",snx,"CAS1");
-    pppCalculate.set_station_coordinate(snx);
     read.ppp_o_read("C://PPP//readFile//oFile//cut01680.15o",ofile);
     read.ppp_sp3_read("C:/PPP/readFile/sp3/gbm18493.sp3",sp3);
     read.ppp_clock_read("C:/PPP/readFile/clk/gbm18493.clk",clock);
-    pppCalculate.ppp_coordinate_clock(ofile,sp3,clock,ppp);
-    /**/
     read.ppp_ant_read("C:/PPP/readFile/ant/antmod.dat",ant);
+
+    //read.ppp_snx_read("C:/PPP/readFile/snx/igs14P1783.snx",snx,ofile.heard.marker_name);
+    pppCalculate.ppp_pretreatment(ofile,ant);
+
+
+    pppCalculate.ppp_spp(ofile,sp3,clock,ant,ppp);
+    /**/
+
     cout << "END!";
 }

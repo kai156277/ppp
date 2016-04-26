@@ -9,24 +9,33 @@
 #include"clock_data.h"
 #include"ppp_data.h"
 #include"snx_data.h"
+#include"antmod_data.h"
 
 class ppp_calculate
 {
 public:
     ppp_calculate();
-    void ppp_coordinate_clock(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,ppp_file &ppp);
-    void set_station_coordinate(const snx_data &snx);
+    void ppp_spp(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,const antmod_file &ant,ppp_file &ppp);
+    void ppp_pretreatment(const o_file &ofile, const antmod_file &ant);
 private:
     void sate_angle(ppp_sate &date);
     void sate_sagnac(ppp_sate &date);
     void sate_relativity(ppp_sate &date);
     void sate_troposphere(ppp_sate &date,int doy);
+    void receiver_antenna(ppp_sate &date);
+    void satellite_antenna(ppp_sate &date, const double *posCTS);
+    void sunPosition(int year, int month, int day, int hour, int minute, double second, double *posCTS);
+    void satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant);
     double station_x;
     double station_y;
     double station_z;
     double station_B;
     double station_L;
     double station_H;
+    double antenna_E;
+    double antenna_N;
+    double antenna_H;
+    station_antmod station_ant;
     const static double c;
     const static double w; //sagnac
     const static double u; //relativity

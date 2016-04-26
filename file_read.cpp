@@ -31,67 +31,67 @@ void file_read::ppp_o_read(const QString &file_path, o_file &obs)
     QString readString;
 
     /*read_heard*/
-    o_heard heard_data;
+
     do
     {
         readString = read.readLine();
         if(readString.indexOf("RINEX VERSION / TYPE") >= 0)
         {
-            heard_data.format_version        = readString.mid(0,9).trimmed();
-            heard_data.file_type             = readString.mid(40,1);
+            obs.heard.format_version        = readString.mid(0,9).trimmed();
+            obs.heard.file_type             = readString.mid(40,1);
         }
         else if(readString.indexOf("PGM / RUN BY / DATE") >= 0)
         {
-            heard_data.creating_program_name = readString.mid(0,20).trimmed();
-            heard_data.creating_agency_name  = readString.mid(20,20).trimmed();
-            heard_data.creation_time         = readString.mid(40,20).trimmed();
+            obs.heard.creating_program_name = readString.mid(0,20).trimmed();
+            obs.heard.creating_agency_name  = readString.mid(20,20).trimmed();
+            obs.heard.creation_time         = readString.mid(40,20).trimmed();
         }
         else if(readString.indexOf("MARKER NAME") >= 0)
         {
-            heard_data.marker_name = readString.mid(0,60).trimmed();
+            obs.heard.marker_name = readString.mid(0,60).trimmed();
         }
         else if(readString.indexOf("MARKER NUMBER") >= 0)
         {
-            heard_data.marker_number = readString.mid(0,60).trimmed();
+            obs.heard.marker_number = readString.mid(0,60).trimmed();
         }
         else if(readString.indexOf("MARKER TYPE") >= 0)
         {
-            heard_data.marke_type = readString.mid(0,60).trimmed();
+            obs.heard.marke_type = readString.mid(0,60).trimmed();
         }
         else if(readString.indexOf("OBSERVER / AGENCY") >= 0)
         {
-            heard_data.observer_name = readString.mid(0,20);
-            heard_data.agency_name   = readString.mid(20,40).trimmed();
+            obs.heard.observer_name = readString.mid(0,20);
+            obs.heard.agency_name   = readString.mid(20,40).trimmed();
         }
         else if(readString.indexOf("REC # / TYPE / VERS") >= 0)
         {
-            heard_data.receiver_number  = readString.mid(0,20).trimmed();
-            heard_data.receiver_type    = readString.mid(20,20).trimmed();
-            heard_data.receiver_version = readString.mid(40,20).trimmed();
+            obs.heard.receiver_number  = readString.mid(0,20).trimmed();
+            obs.heard.receiver_type    = readString.mid(20,20).trimmed();
+            obs.heard.receiver_version = readString.mid(40,20).trimmed();
         }
         else if(readString.indexOf("ANT # / TYPE") >= 0)
         {
-            heard_data.antenna_number = readString.mid(0,20).trimmed();
-            heard_data.antenna_type   = readString.mid(20,20).trimmed();
+            obs.heard.antenna_number = readString.mid(0,20).trimmed();
+            obs.heard.antenna_type   = readString.mid(20,20).trimmed();
         }
         else if(readString.indexOf("APPROX POSITION XYZ") >= 0)
         {
-            heard_data.position_X = readString.mid(0,14).toDouble();
-            heard_data.position_Y = readString.mid(14,14).toDouble();
-            heard_data.position_Z = readString.mid(28,14).toDouble();
+            obs.heard.position_X = readString.mid(0,14).toDouble();
+            obs.heard.position_Y = readString.mid(14,14).toDouble();
+            obs.heard.position_Z = readString.mid(28,14).toDouble();
         }
         else if(readString.indexOf("ANTENNA: DELTA H/E/N") >= 0)
         {
-            heard_data.antenna_H = readString.mid(0,14).toDouble();
-            heard_data.antenna_E = readString.mid(0,14).toDouble();
-            heard_data.antenna_N = readString.mid(0,14).toDouble();
+            obs.heard.antenna_H = readString.mid(0,14).toDouble();
+            obs.heard.antenna_E = readString.mid(0,14).toDouble();
+            obs.heard.antenna_N = readString.mid(0,14).toDouble();
         }
         else if(readString.indexOf("SYS / # / OBS TYPES") >= 0)
         {
             if(readString.mid(0,1) == "G")
             {
-                heard_data.GPS_number = readString.mid(1,5).toInt();
-                int i = ceil(heard_data.GPS_number / 13.0); //有几行同样卫星的数据
+                obs.heard.GPS_number = readString.mid(1,5).toInt();
+                int i = ceil(obs.heard.GPS_number / 13.0); //有几行同样卫星的数据
                 QString sate_info;
                 for(; i>0; i--)
                 {
@@ -102,28 +102,28 @@ void file_read::ppp_o_read(const QString &file_path, o_file &obs)
                     }
                 }
                 sate_info = sate_info.trimmed();
-                heard_data.observation_descriptor = sate_info.split(' ');
+                obs.heard.observation_descriptor = sate_info.split(' ');
             }
 
         }
         else if(readString.indexOf("INTERVAL") >= 0)
         {
-            heard_data.interval = readString.mid(0,10).toDouble();
+            obs.heard.interval = readString.mid(0,10).toDouble();
         }
         else if(readString.indexOf("TIME OF FIRST OBS") >= 0)
         {
-            heard_data.first_time = readString.mid(0,43);
-            heard_data.time_system = readString.mid(43,8).trimmed();
+            obs.heard.first_time = readString.mid(0,43);
+            obs.heard.time_system = readString.mid(43,8).trimmed();
         }
         else if(readString.indexOf("SIGNAL STRENGTH UNIT") >= 0)
         {
-            heard_data.dbhz = readString.mid(0,20).trimmed();
+            obs.heard.dbhz = readString.mid(0,20).trimmed();
         }
     }while(readString.indexOf("END OF HEADER")<=0);
 
     /*phase matching*/
     system_signal sys_signal;
-    phase_matching(heard_data.observation_descriptor ,sys_signal);
+    phase_matching(obs.heard.observation_descriptor ,sys_signal);
 
     /*date*/
 
@@ -157,8 +157,8 @@ void file_read::ppp_o_read(const QString &file_path, o_file &obs)
             if(satellite_data.satellite_infomation.mid(0,1) == "G")
             {
                 QVector<QString> sate;
-                sate.reserve(heard_data.GPS_number);
-                for(int j = 0;j<heard_data.GPS_number ;j++)
+                sate.reserve(obs.heard.GPS_number);
+                for(int j = 0;j<obs.heard.GPS_number ;j++)
                 {
                     sate.push_back(readString.mid(3+j*16,16));
                 }
