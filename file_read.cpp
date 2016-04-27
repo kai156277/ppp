@@ -616,11 +616,24 @@ void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
                     }
                     else if(readString.indexOf("VALID FROM")>=0)
                     {
-                        sate.start_time = readString.mid(2,41);
+                        sate.start_time   = readString.mid(2,41);
+                        sate.start_year   = readString.mid(2,4).toInt();
+                        sate.start_month  = readString.mid(6,6).toInt();
+                        sate.start_day    = readString.mid(12,6).toInt();
+                        sate.start_hour   = readString.mid(18,6).toInt();
+                        sate.start_minute = readString.mid(24,6).toInt();
+                        sate.start_second = readString.mid(30,12).toDouble();
+
                     }
                     else if(readString.indexOf("VALID UNTIL")>=0)
                     {
-                        sate.end_time = readString.mid(2,41);
+                        sate.end_time   = readString.mid(2,41);
+                        sate.end_year   = readString.mid(2,4).toInt();
+                        sate.end_month  = readString.mid(6,6).toInt();
+                        sate.end_day    = readString.mid(12,6).toInt();
+                        sate.end_hour   = readString.mid(18,6).toInt();
+                        sate.end_minute = readString.mid(24,6).toInt();
+                        sate.end_second = readString.mid(30,12).toDouble();
                     }
                     else if(readString.indexOf("SINEX CODE")>=0)
                     {
@@ -632,30 +645,17 @@ void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
                         if(readString.indexOf("G01")>=0)
                         {
                             readString = read.readLine();
-                            sate.L1_APC_x = readString.mid(0,10).toDouble();
-                            sate.L1_APC_y = readString.mid(10,10).toDouble();
-                            sate.L1_APC_z = readString.mid(20,10).toDouble();
+                            sate.APC_x = readString.mid(0,10).toDouble();
+                            sate.APC_y = readString.mid(10,10).toDouble();
+                            sate.APC_z = readString.mid(20,10).toDouble();
                             readString = read.readLine().simplified();
                             QStringList NOAZI = readString.split(" ");
                             for(int i = 1; i<NOAZI.size(); i++)
                             {
-                                sate.L1_NOAZI.push_back(NOAZI[i].toDouble());
+                                sate.NOAZI.push_back(NOAZI[i].toDouble());
                             }
                         }
     /*L2 frequency--------------------------------------------------------------*/
-                        else if(readString.indexOf("G02")>=0)
-                        {
-                            readString = read.readLine();
-                            sate.L2_APC_x = readString.mid(0,10).toDouble();
-                            sate.L2_APC_y = readString.mid(10,10).toDouble();
-                            sate.L2_APC_z = readString.mid(20,10).toDouble();
-                            readString = read.readLine().simplified();
-                            QStringList NOAZI = readString.split(" ");
-                            for(int i = 1; i<NOAZI.size(); i++)
-                            {
-                                sate.L2_NOAZI.push_back(NOAZI[i].toDouble());
-                            }
-                        }
                     }
                 }while(readString.indexOf("END OF ANTENNA")<0);
                 ant.satellite.push_back(sate);

@@ -23,9 +23,9 @@ private:
     void sate_relativity(ppp_sate &date);
     void sate_troposphere(ppp_sate &date,int doy);
     void receiver_antenna(ppp_sate &date);
-    void satellite_antenna(ppp_sate &date, const double *posCTS);
+    void satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant, const double *posCTS);
     void sunPosition(int year, int month, int day, int hour, int minute, double second, double *posCTS);
-    void satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant);
+    int satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant);
     double station_x;
     double station_y;
     double station_z;

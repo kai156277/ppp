@@ -102,6 +102,7 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
         {
             ppp_sate sate;
             satellite_antmod sate_ant;
+
             //每一个卫星的7个插值
             double sate_clock[14] = {0};    //前七个数值为GPS时间，后七个数值为钟差值
             double sate_x[14] = {0};    //前七个数值为GPS时间，后七个数值为坐标值
@@ -110,7 +111,18 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
             double velocity_x[14] = {0};
             double velocity_y[14] = {0};
             double velocity_z[14] = {0};
+            double clock = 0;
+            double clock_error = 0;
+            bool find_flag = false;
 
+            sate.PRN = ofile.satellite_file[i].satellite_epoch[j].satellite_infomation;
+            sate_ant.sate_info = sate.PRN;
+            sate_ant.start_year   = epoch.year;
+            sate_ant.start_month  = epoch.month;
+            sate_ant.start_day    = epoch.day;
+            sate_ant.start_hour   = epoch.hour;
+            sate_ant.start_minute = epoch.minute;
+            sate_ant.start_second = epoch.second;
             sate.P1 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[0];
             sate.P2 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[1];
             sate.P3 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[2];
@@ -126,11 +138,18 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate_find = std::find(clockfile.file[clock_item+k].GPS_epoch.begin(),
                         clockfile.file[clock_item+k].GPS_epoch.end(),
                         ofile.satellite_file[i].satellite_epoch[j]);
-                sate_clock[k] = clockfile.file[clock_item+k].GPSS;
-                sate_clock[k+7] = sate_find->clock_bias;
+                if(sate_find != clockfile.file[clock_item+k].GPS_epoch.end())
+                {
+                    find_flag = true;
+                    sate_clock[k] = clockfile.file[clock_item+k].GPSS;
+                    sate_clock[k+7] = sate_find->clock_bias;
+                }
             }
-            double clock = math_function::lagrange(epoch.GPSS,sate_clock,14);
-            double clock_error = clock + sate.P2 / ppp_calculate::c;
+            if(find_flag == true)
+            {
+                clock = math_function::lagrange(epoch.GPSS,sate_clock,14);
+                clock_error = clock + sate.P2 / ppp_calculate::c;
+            }
             //计算坐标
             for(int k = 0; k<7; k++)
             {
@@ -138,16 +157,24 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate_find = std::find(sp3file.file[sp3_item+k].GPS_epoch.begin(),
                         sp3file.file[sp3_item+k].GPS_epoch.end(),
                         ofile.satellite_file[i].satellite_epoch[j]);
-                sate_x[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
-                sate_y[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
-                sate_z[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
-                sate_x[k+7] = sate_find->x*1000;
-                sate_y[k+7] = sate_find->y*1000;
-                sate_z[k+7] = sate_find->z*1000;
+                if(sate_find != sp3file.file[sp3_item+k].GPS_epoch.end())
+                {
+                    find_flag = true;
+                    sate_x[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
+                    sate_y[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
+                    sate_z[k] = sp3file.file[sp3_item+k].GPSS + clock_error ;
+                    sate_x[k+7] = sate_find->x*1000;
+                    sate_y[k+7] = sate_find->y*1000;
+                    sate_z[k+7] = sate_find->z*1000;
+                }
             }
-            sate.position_x = math_function::lagrange(epoch.GPSS,sate_x,14);
-            sate.position_y = math_function::lagrange(epoch.GPSS,sate_y,14);
-            sate.position_z = math_function::lagrange(epoch.GPSS,sate_z,14);
+            if(find_flag == true)
+            {
+                sate.position_x = math_function::lagrange(epoch.GPSS,sate_x,14);
+                sate.position_y = math_function::lagrange(epoch.GPSS,sate_y,14);
+                sate.position_z = math_function::lagrange(epoch.GPSS,sate_z,14);
+
+            }
 
             //计算速度
             for(int k = 0; k<7; k++)
@@ -156,28 +183,33 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate_find = std::find(sp3file.file[sp3_item+k].GPS_epoch.begin(),
                         sp3file.file[sp3_item+k].GPS_epoch.end(),
                         ofile.satellite_file[i].satellite_epoch[j]);
-                velocity_x[k] = sp3file.file[sp3_item+k].GPSS + clock_error - 0.5;
-                velocity_y[k] = sp3file.file[sp3_item+k].GPSS + clock_error - 0.5;
-                velocity_z[k] = sp3file.file[sp3_item+k].GPSS + clock_error - 0.5;
-                velocity_x[k+7] = sate_find->x*1000;
-                velocity_y[k+7] = sate_find->y*1000;
-                velocity_z[k+7] = sate_find->z*1000;
+                if(sate_find != sp3file.file[sp3_item+k].GPS_epoch.end())
+                {
+                    velocity_x[k] = sp3file.file[sp3_item+k].GPSS + clock_error - 0.5;
+                    velocity_y[k] = sp3file.file[sp3_item+k].GPSS + clock_error - 0.5;
+                    velocity_z[k] = sp3file.file[sp3_item+k].GPSS + clock_error - 0.5;
+                    velocity_x[k+7] = sate_find->x*1000;
+                    velocity_y[k+7] = sate_find->y*1000;
+                    velocity_z[k+7] = sate_find->z*1000;
+                }
+
             }
-            sate.velocity_x = (sate.position_x - math_function::lagrange(epoch.GPSS,velocity_x,14)) / 0.5;
-            sate.velocity_y = (sate.position_y - math_function::lagrange(epoch.GPSS,velocity_y,14)) / 0.5;
-            sate.velocity_z = (sate.position_z - math_function::lagrange(epoch.GPSS,velocity_z,14)) / 0.5;
 
 
-            sate.PRN = ofile.satellite_file[i].satellite_epoch[j].satellite_infomation;
-            sate.clock = clock * ppp_calculate::c;
-
-            sate_angle(sate);       //计算卫星角度信息
-            sate_sagnac(sate);      //计算地球自转效应
-            sate_relativity(sate);  //计算相对论效应
-            sate_troposphere(sate,DOY); //计算对流层效应
-            satellite_antenna(sate,sunPos);
-            satellite_antenna_info(sate_ant,ant);
-            //receiver_antenna(sate);
+            if(find_flag == true)
+            {
+                sate.velocity_x = (sate.position_x - math_function::lagrange(epoch.GPSS,velocity_x,14)) / 0.5;
+                sate.velocity_y = (sate.position_y - math_function::lagrange(epoch.GPSS,velocity_y,14)) / 0.5;
+                sate.velocity_z = (sate.position_z - math_function::lagrange(epoch.GPSS,velocity_z,14)) / 0.5;
+                sate.clock = clock * ppp_calculate::c;
+                sate_angle(sate);       //计算卫星角度信息
+                sate_sagnac(sate);      //计算地球自转效应
+                sate_relativity(sate);  //计算相对论效应
+                sate_troposphere(sate,DOY); //计算对流层效应
+                satellite_antenna_info(sate_ant,ant);
+                satellite_antenna(sate,sate_ant,sunPos);
+                receiver_antenna(sate);
+            }
             epoch.sate_info.push_back(sate);
         }
         ppp.file.push_back(epoch);
@@ -223,10 +255,9 @@ void ppp_calculate::sate_angle(ppp_sate &date)
     date.azimuth   = angle.azimuth;
     date.elevation = angle.elevation;
     date.distance  = angle.distance;
-    date.position_u =date.distance * sin(date.elevation * Pi / 180);
-    double line = date.distance * cos(date.elevation * Pi / 180);
-    date.position_n = line * cos(date.azimuth * Pi / 180);
-    date.position_e = line * sin(date.azimuth * Pi / 180);
+    date.position_e = angle.Senu[0];
+    date.position_n = angle.Senu[1];
+    date.position_u = angle.Senu[2];
 }
 
 void ppp_calculate::sate_sagnac(ppp_sate &date)
@@ -416,70 +447,80 @@ void ppp_calculate::receiver_antenna(ppp_sate &date)
     double ei = date.position_e / date.distance;
     double ni = date.position_n / date.distance;
     double ui = date.position_u / date.distance;
-    date.receiver_antenna_height = 0 * ei + 0 * ni +  antenna_H * ui;
+    date.receiver_antenna_height = antenna_E * ei + antenna_N * ni +  antenna_H * ui;
     double OffsetL1 = station_ant.L1_APC_E * ei + station_ant.L1_APC_N * ni + station_ant.L1_APC_U * ui;
     double OffsetL2 = station_ant.L2_APC_E * ei + station_ant.L2_APC_N * ni + station_ant.L2_APC_U * ui;
     int e = date.elevation / (int)station_ant.DAZI;
     int a = date.azimuth / (int)station_ant.DZEN;
-    if(e == 0)
+    if(e == 18)
     {
-        e += 1;
+        e -= 1;
     }
-    if(a == 0)
+    if(a == 72)
     {
-        a += 1;
+        a -= 1;
     }
-    double offsetL1 = station_ant.L1_NOAZI(a,  e) + station_ant.L1_NOAZI(a-1,e-1) +
-               station_ant.L1_NOAZI(a-1,e) + station_ant.L1_NOAZI(a,  e-1);
-    double offsetL2 = station_ant.L2_NOAZI(a,  e) + station_ant.L2_NOAZI(a-1,e-1) +
-               station_ant.L2_NOAZI(a-1,e) + station_ant.L2_NOAZI(a,  e-1);
-    date.offsetL1 = OffsetL1 / 1000.0 + offsetL1 / 4.0;
-    date.offsetL2 = OffsetL2 / 1000.0 + offsetL2 / 4.0;
+    double offsetL1 = station_ant.L1_NOAZI(a,  e) + station_ant.L1_NOAZI(a+1,e+1) +
+               station_ant.L1_NOAZI(a+1,e) + station_ant.L1_NOAZI(a,  e+1);
+    double offsetL2 = station_ant.L2_NOAZI(a,  e) + station_ant.L2_NOAZI(a+1,e+1) +
+               station_ant.L2_NOAZI(a+1,e) + station_ant.L2_NOAZI(a,  e+1);
+    offsetL1 = 0;
+    offsetL2 = 0;
+    date.offsetL1 = (OffsetL1  + offsetL1 / 4.0) / 1000.0;
+    date.offsetL2 = (OffsetL2  + offsetL2 / 4.0) / 1000.0;
 
 
 }
 
-void ppp_calculate::satellite_antenna(ppp_sate &date,const double *posCTS)
+void ppp_calculate::satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant,const double *posCTS)
 {
-    /*
     Vector3d satPos(date.position_x,date.position_y,date.position_z);
     Vector3d sunPos(posCTS[0],posCTS[1],posCTS[2]);
-    Vector3d sat_sun = satPos.corss(sunPos);
-    Vector3d dsat_sun = satPos.corss(sat_sun);
-    double ez[3] = {0};
-    double ey[3] = {0};
-    double ex[3] = {0};
+    Vector3d sat_sun = satPos.cross(sunPos);
+    Vector3d dsat_sun = satPos.cross(sat_sun);
+    Vector3d ez(3);
+    Vector3d ey(3);
+    Vector3d ex(3);
     double sat_distance = sqrt( pow(satPos(0),2) + pow(satPos(1),2) +pow(satPos(2),2));
     double sat_sun_distance = sqrt( pow(sat_sun(0),2) + pow(sat_sun(1),2) +pow(sat_sun(2),2));
     double dsat_sun_distance = sqrt( pow(dsat_sun(0),2) + pow(dsat_sun(1),2) + pow(dsat_sun(2),2));
     for(int i = 0; i < 3; i++)
     {
-        ez[i] = satPos(i) / sat_distance;
-        ey[i] = sat_sun(i) / sat_sun_distance;
-        ex[i] = dsat_sun(i) / dsat_sun_distance;
+        ez(i) = satPos(i) / sat_distance;
+        ey(i) = sat_sun(i) / sat_sun_distance;
+        ex(i) = dsat_sun(i) / dsat_sun_distance;
     }
 
     Matrix3d e;
     for(int i = 0; i<3; i++)
     {
-        e(i,0) = ex[i];
-        e(i,1) = ey[i];
-        e(i,2) = ez[i];
+        e(0,i) = ex(i);
+        e(1,i) = ey(i);
+        e(2,i) = ez(i);
     }
-    Vector3d PCO();
-    //Vector3d PCO_ecef = e * PCO;
+    MatrixXd PCO(3,1);
+    PCO(0,0) = sate_ant.APC_x;
+    PCO(1,0) = sate_ant.APC_y;
+    PCO(2,0) = sate_ant.APC_z;
+    Vector3d PCO_ecef = e * PCO;
 
-    double r[3] = {0};
+    Vector3d r;
     double r_dx = station_x - satPos(0);
     double r_dy = station_y - satPos(1);
     double r_dz = station_z - satPos(2);
     double r_distance = sqrt( pow(r_dx,2) + pow(r_dy,2) + pow(r_dz,2) );
-    r[0] = r_dx / r_distance;
-    r[1] = r_dy / r_distance;
-    r[2] = r_dz / r_distance;
+    r(0) = r_dx / r_distance;
+    r(1) = r_dy / r_distance;
+    r(2) = r_dz / r_distance;
 
-    double s =
-    */
+    double s = r.dot(PCO_ecef);
+
+    double angle = acos(r.dot(ez));
+
+    int c = ceil(angle) ;
+    int f = floor(angle);
+
+    date.antenna = (s + (sate_ant.NOAZI[c] + sate_ant.NOAZI[f])) / 1000;
 }
 
 void ppp_calculate::sunPosition(int year, int month, int day, int hour, int minute, double second, double *posCTS)
@@ -575,9 +616,60 @@ void ppp_calculate::sunPosition(int year, int month, int day, int hour, int minu
 
 }
 
-void ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant)
+int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant)
 {
+    GC_GPSS time;
+    time.setGC(sate_ant.start_year  ,sate_ant.start_month,
+               sate_ant.start_day   ,sate_ant.start_hour,
+               sate_ant.start_minute,sate_ant.start_second);
+    time.GCtoGPS();
+    double sate_ant_JD = time.JD;
 
+
+    QVector<satellite_antmod>::const_iterator sate_ant_find = ant.satellite.begin();
+    for(int i = 0; i<ant.satellite.size(); i++)
+    {
+        double start_JD = 0;
+        double end_JD = 0;
+        sate_ant_find = std::find(sate_ant_find,ant.satellite.end(),sate_ant);
+        if(sate_ant_find != ant.satellite.end())
+        {
+            time.clear();
+            time.setGC(sate_ant_find->start_year  ,sate_ant_find->start_month,
+                       sate_ant_find->start_day   ,sate_ant_find->start_hour,
+                       sate_ant_find->start_minute,sate_ant_find->start_second);
+            time.GCtoGPS();
+            start_JD = time.JD;
+            time.clear();
+            if(sate_ant_find->end_time !=  "")
+            {
+                time.setGC(sate_ant_find->end_year  ,sate_ant_find->end_month,
+                           sate_ant_find->end_day   ,sate_ant_find->end_hour,
+                           sate_ant_find->end_minute,sate_ant_find->end_second);
+                time.GCtoGPS();
+                end_JD = time.JD;
+                if(sate_ant_JD>=start_JD && sate_ant_JD <= end_JD)
+                {
+                    sate_ant = ant.satellite.at(sate_ant_find-ant.satellite.begin());
+                    return 1;
+                }
+            }
+            else
+            {
+                if(sate_ant_JD>=start_JD )
+                {
+                    sate_ant = ant.satellite.at(sate_ant_find-ant.satellite.begin());
+                    return 1;
+                }
+            }
+            sate_ant_find += 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    return 0;
 }
 
 

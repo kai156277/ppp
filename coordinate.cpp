@@ -1,4 +1,4 @@
-#include "coordinate.h"
+﻿#include "coordinate.h"
 #include <math.h>
 
 double Coordinate::a = 6378137;
@@ -27,7 +27,9 @@ Coordinate::Coordinate()
      Rx(0),Ry(0),Rz(0),
      azimuth(0), elevation(0), distance(0)
 {
-
+    Senu[0] = 0;
+    Senu[1] = 1;
+    Senu[2] = 2;
 }
 
 Coordinate::~Coordinate()
@@ -197,7 +199,8 @@ Coordinate &Coordinate::xyntoXYZ()
 
 Coordinate &Coordinate::ENUparameter()
 {
-    double Senu[3]={0,0,0}; //Senu[0] = x,Senu[1] = y,Senu[2]=z
+
+    //Senu[0] = e,Senu[1] = n,Senu[2]=u
     setXYZ(Rx,Ry,Rz).XYZtoBLH().RotationalMatrices( Senu );
     distance = sqrt( pow(Senu[0],2) + pow(Senu[1],2) + pow(Senu[2],2));
     elevation = atan( Senu[2] / (sqrt( pow(Senu[0],2) + pow(Senu[1],2) )) ) * 180 / PI;

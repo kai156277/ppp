@@ -9,6 +9,7 @@ class satellite_antmod
 {
 public:
     satellite_antmod();
+    bool operator ==(const satellite_antmod &right) const;
     QString antenna_type;
     QString sate_info;
     double DAZI;
@@ -17,20 +18,26 @@ public:
     double DZEN;
     int num_of_frequencies;
     QString start_time;     //有效期开始的时间
+    int start_year;
+    int start_month;
+    int start_day;
+    int start_hour;
+    int start_minute;
+    double start_second;
     QString end_time;
+    int end_year;
+    int end_month;
+    int end_day;
+    int end_hour;
+    int end_minute;
+    double end_second;
     QString frequency_type;
 
-    QString L1_frequency;
-    double L1_APC_x;       //x方向上卫星天线相位中心与卫星中心相对偏差
-    double L1_APC_y;
-    double L1_APC_z;
-    QVector<double> L1_NOAZI;  //PCV 天线相位中心偏差
-
-    QString L2_frequency;
-    double L2_APC_x;       //x方向上卫星天线相位中心与卫星中心相对偏差
-    double L2_APC_y;
-    double L2_APC_z;
-    QVector<double> L2_NOAZI;  //PCV 天线相位中心偏差，
+    QString frequency;
+    double APC_x;       //x方向上卫星天线相位中心与卫星中心相对偏差
+    double APC_y;
+    double APC_z;
+    QVector<double> NOAZI;  //PCV 天线相位中心偏差
 
 };
 

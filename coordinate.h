@@ -1,4 +1,4 @@
-#ifndef COORDINATE_H
+﻿#ifndef COORDINATE_H
 #define COORDINATE_H
 
 
@@ -27,6 +27,7 @@ public:
     double B,L,H;           //大地经纬坐标系
     double Sx, Sy, Sz, Rx, Ry, Rz;
     double azimuth, elevation, distance;
+    double Senu[3];
 private:
     static double a;        //椭球长半轴
     static double E;        //椭球第一偏心率的平方
