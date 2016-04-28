@@ -89,9 +89,9 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
         epoch.GPSS = ofile.satellite_file[i].GPSS;
 
         GC_Time station_GC;
-        julian_Time julian;
         station_GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
         DOY_Time station_DOY = time_Transform::GCtoDOY(station_GC);
+        julian_Time julian = time_Transform::GCtoJulian(station_GC);
         DOY = station_DOY.doy;
         XYZ_coordinate sunPostion = sun_moon_position::sunPostion(julian);
 
@@ -489,21 +489,50 @@ void ppp_calculate::satellite_antenna(ppp_sate &date, satellite_antmod &sate_ant
     Vector3d ey(3);
     Vector3d ex(3);
 
+    /*1.计算星固系在惯性系中的单位向量 [ez,ey,ex]-----------------------------------*/
     ez = -1.0 * satPos / satPos.norm();
     ey = -1.0 * sat_sun / sat_sun.norm();
     ex = -1.0 * dsat_sun / dsat_sun.norm();
 
+    /*2.计算卫星到接收机的单位向量 r-----------------------------------------------*/
     Vector3d PCO(sate_ant.APC_x,sate_ant.APC_y,sate_ant.APC_z);
     Vector3d P_rec_sat(station_x - satPos(0),station_y - satPos(1),station_z - satPos(2));
     Vector3d r = P_rec_sat / P_rec_sat.norm();
-    double angle = acos(ez.dot(r));
+
+    /*3.计算ez与r之间的夹角-------------------------------------------------------*/
+    double s = ez.dot(r);
+    (s < -1.0) ? (s = -1.0) : 0 ;
+    (s > 1.0)  ? (s =  1.0) : 0 ;
+    double angle = acos(s) * 180 / Pi;
+    if( angle < sate_ant.ZEN1 || angle >sate_ant.ZEN2 )
+    {
+        qDebug() << "This error is in the satellite antenna function! "
+                 << "satellite " << date.PRN  << " angle is out of ZEN1~ZEN2."
+                 << "satellite enu coordinate is:" <<endl
+                 << "elevation :" << date.elevation
+                 << "azimuth :" << date.azimuth << endl;
+        exit(1);
+    }
+    if( sate_ant.DZEN == 0)
+    {
+        qDebug() << "This error is in the satellite antenna function! "
+                 << "satellite " << date.PRN  << " type is wrong!."
+                 << "satellite enu coordinate is:" <<endl
+                 << "elevation :" << date.elevation
+                 << "azimuth :" << date.azimuth << endl;
+        exit(1);
+    }
+    /*4.根据夹角内插PCV*/
     int c = ceil(angle) ;
     int f = floor(angle);
-    Vector3d PCV(0,0,(sate_ant.NOAZI[c] + sate_ant.NOAZI[f]));
+    double PCV_U = (sate_ant.NOAZI[c] + sate_ant.NOAZI[f]) / 2;
+    Vector3d PCV(0,0,PCV_U);
+    /*5.将星固系下的PCC转换到地固系下的PCC------------------------------------------*/
     Vector3d PCC = PCO - PCV;
     Vector3d PCC_ECEF = ex * PCC(0) + ey * PCC(1) + ez * PCC(2);
 
     date.sate_antenna = r.dot(PCC_ECEF) / 1000;
+    int  i = 0;
 }
 
 int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant)
