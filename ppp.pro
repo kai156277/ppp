@@ -22,29 +22,29 @@ SOURCES += main.cpp \
     math_function.cpp \
     matching.cpp \
     readfilepath.cpp \
-    gc_gpss.cpp \
     ppp_calculate.cpp \
-    coordinate.cpp \
     antmod_data.cpp \
     clock_data.cpp \
     o_data.cpp \
     ppp_data.cpp \
     snx_data.cpp \
     sp3_data.cpp \
-    time_system.cpp
+    time_system.cpp \
+    coordinate_system.cpp \
+    sun_moon_position.cpp
 
 HEADERS += \
     file_read.h \
     math_function.h \
     matching.h \
     readfilepath.h \
-    gc_gpss.h \
     ppp_calculate.h \
-    coordinate.h \
     antmod_data.h \
     clock_data.h \
     o_data.h \
     ppp_data.h \
     snx_data.h \
     sp3_data.h \
-    time_system.h
+    time_system.h \
+    coordinate_system.h \
+    sun_moon_position.h

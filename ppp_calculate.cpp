@@ -5,9 +5,10 @@
 #include <Eigen/Eigen>
 
 #include "ppp_calculate.h"
-#include "gc_gpss.h"
+#include "time_system.h"
 #include "math_function.h"
-#include "coordinate.h"
+#include "coordinate_system.h"
+#include "sun_moon_position.h"
 
 using namespace Eigen;
 const double ppp_calculate::c = 299792458;
@@ -51,6 +52,14 @@ const double ppp_calculate::k1 = 77.604;
 const double ppp_calculate::k2 = 16.6;
 const double ppp_calculate::k3 = 377600;
 
+/*GPS载波频率--------------------------------------------------------------------*/
+const double ppp_calculate::f1 = 154 * 10.23 * 1e6;
+const double ppp_calculate::f2 = 120 * 10.23 * 1e6;
+const double ppp_calculate::f5 = 115 * 10.23 * 1e6;
+/*GPS载波波长--------------------------------------------------------------------*/
+const double ppp_calculate::lambdal1 = ppp_calculate::c / ppp_calculate::f1;
+const double ppp_calculate::lambdal2 = ppp_calculate::c / ppp_calculate::f2;
+
 ppp_calculate::ppp_calculate()
     :station_x(0),station_y(0),station_z(0),
       station_B(0),station_L(0),station_H(0),
@@ -78,12 +87,13 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
         epoch.second = ofile.satellite_file[i].second;
         epoch.sate_number = ofile.satellite_file[i].number_of_satellite;
         epoch.GPSS = ofile.satellite_file[i].GPSS;
-        GC_GPSS station;
-        station.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
-        station.GCtoDOY();
-        DOY = station.DOY;
-        double sunPos[3] = {0};
-        sunPosition(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second,sunPos);//计算太阳位置
+
+        GC_Time station_GC;
+        julian_Time julian;
+        station_GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+        DOY_Time station_DOY = time_Transform::GCtoDOY(station_GC);
+        DOY = station_DOY.doy;
+        XYZ_coordinate sunPostion = sun_moon_position::sunPostion(julian);
 
         //寻找符合历元的clock lagrange的插值起点
         double clock_find_time = epoch.GPSS - clock_interval;
@@ -206,9 +216,10 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate_sagnac(sate);      //计算地球自转效应
                 sate_relativity(sate);  //计算相对论效应
                 sate_troposphere(sate,DOY); //计算对流层效应
-                satellite_antenna_info(sate_ant,ant);
-                satellite_antenna(sate,sate_ant,sunPos);
                 receiver_antenna(sate);
+                satellite_antenna_info(sate_ant,ant);
+                satellite_antenna(sate,sate_ant,sunPostion);
+                int jjj = 0;
             }
             epoch.sate_info.push_back(sate);
         }
@@ -221,11 +232,12 @@ void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant
     station_x = ofile.heard.position_X;
     station_y = ofile.heard.position_Y;
     station_z = ofile.heard.position_Z;
-    Coordinate station;
-    station.setXYZ(ppp_calculate::station_x,ppp_calculate::station_y,ppp_calculate::station_z).XYZtoBLH();
-    station_B = fabs(station.B) * 180 / ppp_calculate::Pi;
-    station_L = station.L * 180 / ppp_calculate::Pi;
-    station_H = station.H;
+    XYZ_coordinate XYZ_station;
+    XYZ_station.setXYZ(ppp_calculate::station_x,ppp_calculate::station_y,ppp_calculate::station_z);
+    BLH_coordinate BLH_station = coordinate_transform::XYZtoBLH(XYZ_station);
+    station_B = BLH_station.get_latitude_angle();
+    station_L = BLH_station.get_longitude_angle();
+    station_H = BLH_station.getHeight();
     antenna_E = ofile.heard.antenna_E;
     antenna_N = ofile.heard.antenna_N;
     antenna_H = ofile.heard.antenna_H;
@@ -249,15 +261,15 @@ void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant
 
 void ppp_calculate::sate_angle(ppp_sate &date)
 {
-    Coordinate angle;
-    angle.setENU(date.position_x, date.position_y, date.position_z ,
-                 this->station_x, this->station_y, this->station_z).ENUparameter();
-    date.azimuth   = angle.azimuth;
-    date.elevation = angle.elevation;
-    date.distance  = angle.distance;
-    date.position_e = angle.Senu[0];
-    date.position_n = angle.Senu[1];
-    date.position_u = angle.Senu[2];
+    XYZ_coordinate station_XYZ(this->station_x, this->station_y, this->station_z);
+    XYZ_coordinate satellite_XYZ(date.position_x, date.position_y, date.position_z );
+    ENU_coordiante satellite_ENU = coordinate_transform::sateENU(station_XYZ,satellite_XYZ);
+    date.azimuth   = satellite_ENU.getAzimuth();
+    date.elevation = satellite_ENU.getElevation();
+    date.distance  = satellite_ENU.getDistance();
+    date.position_e = satellite_ENU.getSate_e();
+    date.position_n = satellite_ENU.getSate_n();
+    date.position_u = satellite_ENU.getSate_u();
 }
 
 void ppp_calculate::sate_sagnac(ppp_sate &date)
@@ -351,7 +363,6 @@ void ppp_calculate::sate_troposphere(ppp_sate &date, int doy)
                     (Neil_hyd_amplitude[index+1][i] - Neil_hyd_amplitude[index][i]) / 15.0 * (station_B - Neil_hyd_amplitude[index][0]);
         }
     }
-    double lat_hyd_doy=     Neil_hyd_avg[0] -     Neil_hyd_amp[0] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);;
     double  a_hyd_doy =     Neil_hyd_avg[1] -     Neil_hyd_amp[1] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);;
     double  b_hyd_doy =     Neil_hyd_avg[2] -     Neil_hyd_amp[2] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);;
     double  c_hyd_doy =     Neil_hyd_avg[3] -     Neil_hyd_amp[3] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);;
@@ -384,14 +395,12 @@ void ppp_calculate::sate_troposphere(ppp_sate &date, int doy)
     }
 
     /*当天的气象条件--------------------------------------------------------------*/
-    double    lat_doy = computed_avg[0] - computed_amp[0] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);
     double      P_doy = computed_avg[1] - computed_amp[1] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);
     double      T_doy = computed_avg[2] - computed_amp[2] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);
     double    WVP_doy = computed_avg[3] - computed_amp[3] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);
     double   Beta_doy = computed_avg[4] - computed_amp[4] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);
     double Lambda_doy = computed_avg[5] - computed_amp[5] * cos((doy - 28) * 2 * ppp_calculate::Pi / 365.25);
 
-    double lat_wet_doy= Neil_wet_avg[0];
     double  a_wet_doy = Neil_wet_avg[1];
     double  b_wet_doy = Neil_wet_avg[2];
     double  c_wet_doy = Neil_wet_avg[3];
@@ -444,13 +453,15 @@ void ppp_calculate::sate_troposphere(ppp_sate &date, int doy)
 
 void ppp_calculate::receiver_antenna(ppp_sate &date)
 {
+    /*当计算接收机的表格时使用天顶角------------------------------------------------*/
     double ei = date.position_e / date.distance;
     double ni = date.position_n / date.distance;
     double ui = date.position_u / date.distance;
-    date.receiver_antenna_height = antenna_E * ei + antenna_N * ni +  antenna_H * ui;
-    double OffsetL1 = station_ant.L1_APC_E * ei + station_ant.L1_APC_N * ni + station_ant.L1_APC_U * ui;
-    double OffsetL2 = station_ant.L2_APC_E * ei + station_ant.L2_APC_N * ni + station_ant.L2_APC_U * ui;
-    int e = date.elevation / (int)station_ant.DAZI;
+    double station_zenith = 90 - date.elevation;
+    date.stat_ant_height = antenna_E * ei + antenna_N * ni +  antenna_H * ui;
+    double PCO1 = station_ant.L1_APC_E * ei + station_ant.L1_APC_N * ni + station_ant.L1_APC_U * ui;
+    double PCO2 = station_ant.L2_APC_E * ei + station_ant.L2_APC_N * ni + station_ant.L2_APC_U * ui;
+    int e = station_zenith / (int)station_ant.DAZI;
     int a = date.azimuth / (int)station_ant.DZEN;
     if(e == 18)
     {
@@ -464,18 +475,14 @@ void ppp_calculate::receiver_antenna(ppp_sate &date)
                station_ant.L1_NOAZI(a+1,e) + station_ant.L1_NOAZI(a,  e+1);
     double offsetL2 = station_ant.L2_NOAZI(a,  e) + station_ant.L2_NOAZI(a+1,e+1) +
                station_ant.L2_NOAZI(a+1,e) + station_ant.L2_NOAZI(a,  e+1);
-    offsetL1 = 0;
-    offsetL2 = 0;
-    date.offsetL1 = (OffsetL1  + offsetL1 / 4.0) / 1000.0;
-    date.offsetL2 = (OffsetL2  + offsetL2 / 4.0) / 1000.0;
-
-
+    date.offsetL1 = (PCO1  - offsetL1 / 4.0) / 1000.0 / ppp_calculate::lambdal1;
+    date.offsetL2 = (PCO2  - offsetL2 / 4.0) / 1000.0 / ppp_calculate::lambdal2;
 }
 
-void ppp_calculate::satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant,const double *posCTS)
+void ppp_calculate::satellite_antenna(ppp_sate &date, satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion)
 {
     Vector3d satPos(date.position_x,date.position_y,date.position_z);
-    Vector3d sunPos(posCTS[0],posCTS[1],posCTS[2]);
+    Vector3d sunPos(sunPostion.getX(),sunPostion.getY(),sunPostion.getZ());
     Vector3d sat_sun = satPos.cross(sunPos);
     Vector3d dsat_sun = satPos.cross(sat_sun);
     Vector3d ez(3);
@@ -496,110 +503,18 @@ void ppp_calculate::satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant,
     Vector3d PCC = PCO - PCV;
     Vector3d PCC_ECEF = ex * PCC(0) + ey * PCC(1) + ez * PCC(2);
 
-    date.antenna = r.dot(PCC_ECEF) / 1000;
-}
-
-void ppp_calculate::sunPosition(int year, int month, int day, int hour, int minute, double second, double *posCTS)
-{
-    GC_GPSS sid_time;
-    sid_time.setGC(year,month,day,hour,minute,second);
-    sid_time.GCtoDOY();
-    int doy = sid_time.DOY;
-    double SOD = hour*3600+minute*60+second;
-    double jd = sid_time.JD;
-    double posCIS[3] ={0};
-    double TWO_PI = 6.2831853071796 ;
-    /* Mean Earth-Moon barycenter (EMB) distance (AU).--------------------------*/
-    double MeanEarthMoonBary=3.12e-5;
-    /* Astronomical Unit value (AU), in meters.---------------------------------*/
-    double AU_CONST=1.49597870e11;
-    /* Compute the years, and fraction of year, pased since J1900.0-------------*/
-    /* Current year-------------------------------------------------------------*/
-    /* Day of current year------------------------------------------------------*/
-    double fd=SOD/86400.0;
-
-    /* Fraction of day----------------------------------------------------------*/
-    int years=floor(year-1900) ;
-    /* Integer number of years since J1900.0------------------------------------*/
-    int iy4=floor(((year%4)+4)%4);
-
-    /* Compute fraction of year-------------------------------------------------*/
-    double yearfrac=((4*(doy-1/(iy4+1))-iy4-2)+4.0*fd)/1461.0;
-
-    double times=years+yearfrac;
-
-    /* Compute the geometric mean longitude of the Sun--------------------------*/
-    double elm1 = 4.881628+TWO_PI*yearfrac+0.0001342*times;
-    double elm = elm1 - ((int)(elm1 / TWO_PI)) * TWO_PI;
-
-    /* Mean longitude of perihelion---------------------------------------------*/
-    double gamma=4.90823+0.00030005*times;
-
-    /* Mean anomaly-------------------------------------------------------------*/
-    double em=elm-gamma;
-
-    /* Mean obliquity-----------------------------------------------------------*/
-    double eps0=0.40931975-2.27e-6*times;
-
-    /* Eccentricity-------------------------------------------------------------*/
-    double e=0.016751-4.2e-7*times;
-    double esq=e*e;
-
-    /* True anomaly-------------------------------------------------------------*/
-    double v=em+2.0*e*sin(em)+1.25*esq*sin(2.0*em);
-
-    /* True ecliptic longitude--------------------------------------------------*/
-    double elt=v+gamma;
-
-    /* True distance------------------------------------------------------------*/
-    double r=(1.0-esq)/(1.0+e*cos(v));
-
-    /* Moon's mean longitude----------------------------------------------------*/
-    double elmm1 = 4.72 + 83.9971*times;
-    double elmm= elmm1 - ((int)(elmm1/TWO_PI)) * TWO_PI;
-
-    /* Useful definitions-------------------------------------------------------*/
-    double coselt=cos(elt);
-    double sineps=sin(eps0);
-    double coseps=cos(eps0);
-    double w1=-r*sin(elt);
-    double selmm=sin(elmm);
-    double celmm=cos(elmm);
-
-    /* Sun position is the opposite of Earth position---------------------------*/
-    posCIS[0] = (r*coselt+MeanEarthMoonBary*celmm)*AU_CONST;
-    posCIS[1] = (MeanEarthMoonBary*selmm-w1)*coseps*AU_CONST;
-    posCIS[2] = (-w1*sineps)*AU_CONST;
-
-    /*SID恒星时------------------------------------------------------------------*/
-
-    /*Hours of day(decimal)-----------------------------------------------------*/
-    double sid_h = SOD / 3600.0;
-    double tt = (jd - 2451545.0)/36525.0;
-    double sid = 24110.54841 + tt*((8640184.812866)+tt*((0.093104)-(6.2e-6*tt)));
-    sid = sid / 3600.0 +sid_h;
-    sid = sid - ((int)(sid / 24.0))*24.0;
-    if(sid < 0)
-    {
-        sid = sid + 24.0;
-    }
-
-    double ts = sid * TWO_PI / 24.0;
-
-    posCTS[0] = cos(ts)*posCIS[0]+sin(ts)*posCIS[1];
-    posCTS[1] = -sin(ts)*posCIS[0]+cos(ts)*posCIS[1];
-    posCTS[2] = posCIS[2];
-
+    date.sate_antenna = r.dot(PCC_ECEF) / 1000;
 }
 
 int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant)
 {
-    GC_GPSS time;
-    time.setGC(sate_ant.start_year  ,sate_ant.start_month,
+    julian_Time JD;
+    GC_Time time;
+    time.setGC_Time(sate_ant.start_year  ,sate_ant.start_month,
                sate_ant.start_day   ,sate_ant.start_hour,
                sate_ant.start_minute,sate_ant.start_second);
-    time.GCtoGPS();
-    double sate_ant_JD = time.JD;
+    JD = time_Transform::GCtoJulian(time);
+    double sate_ant_JD = JD.julian;
 
 
     QVector<satellite_antmod>::const_iterator sate_ant_find = ant.satellite.begin();
@@ -610,20 +525,20 @@ int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antm
         sate_ant_find = std::find(sate_ant_find,ant.satellite.end(),sate_ant);
         if(sate_ant_find != ant.satellite.end())
         {
-            time.clear();
-            time.setGC(sate_ant_find->start_year  ,sate_ant_find->start_month,
-                       sate_ant_find->start_day   ,sate_ant_find->start_hour,
-                       sate_ant_find->start_minute,sate_ant_find->start_second);
-            time.GCtoGPS();
-            start_JD = time.JD;
-            time.clear();
+
+            time.setGC_Time(sate_ant.start_year  ,sate_ant.start_month,
+                       sate_ant.start_day   ,sate_ant.start_hour,
+                       sate_ant.start_minute,sate_ant.start_second);
+            JD = time_Transform::GCtoJulian(time);
+            start_JD = JD.julian;
+
             if(sate_ant_find->end_time !=  "")
             {
-                time.setGC(sate_ant_find->end_year  ,sate_ant_find->end_month,
+                time.setGC_Time(sate_ant_find->end_year  ,sate_ant_find->end_month,
                            sate_ant_find->end_day   ,sate_ant_find->end_hour,
                            sate_ant_find->end_minute,sate_ant_find->end_second);
-                time.GCtoGPS();
-                end_JD = time.JD;
+                JD = time_Transform::GCtoJulian(time);
+                end_JD = JD.julian;
                 if(sate_ant_JD>=start_JD && sate_ant_JD <= end_JD)
                 {
                     sate_ant = ant.satellite.at(sate_ant_find-ant.satellite.begin());
@@ -647,6 +562,3 @@ int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antm
     }
     return 0;
 }
-
-
-

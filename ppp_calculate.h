@@ -10,6 +10,7 @@
 #include"ppp_data.h"
 #include"snx_data.h"
 #include"antmod_data.h"
+#include"coordinate_system.h"
 
 class ppp_calculate
 {
@@ -23,8 +24,7 @@ private:
     void sate_relativity(ppp_sate &date);
     void sate_troposphere(ppp_sate &date,int doy);
     void receiver_antenna(ppp_sate &date);
-    void satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant, const double *posCTS);
-    void sunPosition(int year, int month, int day, int hour, int minute, double second, double *posCTS);
+    void satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion);
     int satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant);
     double station_x;
     double station_y;
@@ -52,7 +52,15 @@ private:
     /*--------------------------------------------------------------------------*/
     const static double Neil_hyd_average[5][4];
     const static double Neil_hyd_amplitude[5][4];
-    /*----------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------*/
+
+    /*GPS载波频率(Hz)------------------------------------------------------------*/
+    const static double f1;
+    const static double f2;
+    const static double f5;
+    /*GPS载波的波长--------------------------------------------------------------*/
+    const static double lambdal1;
+    const static double lambdal2;
 };
 
 #endif // PPP_CALCULATE_H

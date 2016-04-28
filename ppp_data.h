@@ -31,8 +31,8 @@ public:
     double relativity;
     double sagnac;
     double tide_effect;
-    double receiver_antenna_height;
-    double antenna;
+    double stat_ant_height;
+    double sate_antenna;
     double offsetL1;
     double offsetL2;
     double windup;

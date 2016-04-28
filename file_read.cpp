@@ -9,7 +9,7 @@
 
 #include"file_read.h"
 #include"o_data.h"
-#include"gc_gpss.h"
+#include"time_system.h"
 
 using namespace std;
 using namespace Eigen;
@@ -141,12 +141,11 @@ void file_read::ppp_o_read(const QString &file_path, o_file &obs)
         epoch.number_of_satellite = readString.mid(32,3).toInt();
         epoch.clock_offset = readString.mid(41,15).toDouble();
 
-        GC_GPSS time;
-        time.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
-        time.GCtoGPS();
-        epoch.GPSW = time.GPSW;
-        epoch.GPSS = time.GPSS;
-        time.clear();
+        GC_Time GC;
+        GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+        GPS_Time GPST = time_Transform::GCtoGPST(GC);
+        epoch.GPSW = GPST.GPSW;
+        epoch.GPSS = GPST.GPSS;
 
         for(int i = 0; i<epoch.number_of_satellite; i++)
         {
@@ -306,12 +305,11 @@ void file_read::ppp_sp3_read(const QString &file_path, sp3_file &sp3)
         epoch.minute = readString.mid(16,3).toInt();
         epoch.second = readString.mid(19,12).toDouble();
 
-        GC_GPSS time;
-        time.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
-        time.GCtoGPS();
-        epoch.GPSW = time.GPSW;
-        epoch.GPSS = time.GPSS;
-        time.clear();
+        GC_Time GC;
+        GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+        GPS_Time GPST = time_Transform::GCtoGPST(GC);
+        epoch.GPSW = GPST.GPSW;
+        epoch.GPSS = GPST.GPSS;
 
         //读取GPS卫星之前的信息
         for(int j = 0; j<sp3.heard.before_GPS; j++)
@@ -452,12 +450,11 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
             epoch.second     = readString.mid(24,10).toDouble();
             epoch.number_of_data = readString.mid(34,6).toInt();
 
-            GC_GPSS time;
-            time.setGC(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
-            time.GCtoGPS();
-            epoch.GPSW = time.GPSW;
-            epoch.GPSS = time.GPSS;
-            time.clear();
+            GC_Time GC;
+            GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
+            GPS_Time GPST = time_Transform::GCtoGPST(GC);
+            epoch.GPSW = GPST.GPSW;
+            epoch.GPSS = GPST.GPSS;
 
             for(int i = 0; i<6; i++)
             {
