@@ -1,7 +1,7 @@
 ﻿#ifndef TIME_SYSTEM_H
 #define TIME_SYSTEM_H
 
-#include <ostream>
+#include <iostream>
 
 class julian_Time
 {
@@ -9,10 +9,7 @@ public:
     julian_Time();
     julian_Time(double value);
     ~julian_Time();
-    double getJulian() const;
-    void setJulian(double value);
 
-private:
     double julian;
 };
 
@@ -24,27 +21,12 @@ public:
     ~GC_Time();
 
     void setGC_Time(int year, int month, int day, int hour, double minute, double second);
-    void getGC_Time(int &year, int &month, int &day, int &hour, double &minute, double &second) const;
 
     double operator -(const GC_Time &right) const;
     bool operator ==(const GC_Time &right) const;
     bool operator >(const GC_Time &right) const;
     bool operator <(const GC_Time &right) const;
 
-    int getYear() const;
-    void setYear(int value);
-    int getMonth() const;
-    void setMonth(int value);
-    int getDay() const;
-    void setDay(int value);
-    int getHour() const;
-    void setHour(int value);
-    int getMinute() const;
-    void setMinute(int value);
-    double getSecond() const;
-    void setSecond(double value);
-
-private:
     int year;
     int month;
     int day;
@@ -65,12 +47,12 @@ public:
     bool operator >(const GPS_Time &right) const;
     bool operator <(const GPS_Time &right) const;
     void setGPS_Time(int GPSW,double GPSS);
-    int getGPSW() const;
-    double getGPSS() const;
 
-private:
+
+    const static double JDGPSS;
     int GPSW;
     double GPSS;
+
 };
 
 class DOY_Time
@@ -80,7 +62,11 @@ public:
     DOY_Time(int year,int doy,double sod);
     ~DOY_Time();
     void setDOY(int year,int doy,double sod);
-private:
+    double operator -(const DOY_Time &right) const;
+    bool operator ==(const DOY_Time &right) const;
+    bool operator >(const DOY_Time &right) const;
+    bool operator <(const DOY_Time &right) const;
+
     int year;
     int doy;
     double sod;
@@ -93,13 +79,20 @@ public:
     ~time_Transform();
     static julian_Time GCtoJulian(const GC_Time &GC);
     static julian_Time GPSTtoJulian(const GPS_Time &GPST);
+    static julian_Time DOYtoJulian(const DOY_Time &DOY);
+
     static GC_Time JuliantoGC(const julian_Time &Julian);
     static GC_Time GPSTtoGC(const GPS_Time &GPST);
+    static GC_Time DOYtoGC(const DOY_Time &DOY);
+
     static GPS_Time JuliantoGPST(const julian_Time &Julian);
     static GPS_Time GCtoGPST(const GC_Time &GC);
+    static GPS_Time DOYtoGPST(const DOY_Time &DOY);
 
-private:
-    static const double JDGPSS;
+    static DOY_Time GCtoDOY(const GC_Time &GC);
+    static DOY_Time GPSTtoDOY(const GPS_Time &GPST);
+    static DOY_Time JuliantoDOY(const julian_Time &Julian);
+
 };
 
 #endif // TIME_SYSTEM_H
