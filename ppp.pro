@@ -30,7 +30,8 @@ SOURCES += main.cpp \
     o_data.cpp \
     ppp_data.cpp \
     snx_data.cpp \
-    sp3_data.cpp
+    sp3_data.cpp \
+    time_system.cpp
 
 HEADERS += \
     file_read.h \
@@ -45,4 +46,5 @@ HEADERS += \
     o_data.h \
     ppp_data.h \
     snx_data.h \
-    sp3_data.h
+    sp3_data.h \
+    time_system.h

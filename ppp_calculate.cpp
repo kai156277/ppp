@@ -481,46 +481,22 @@ void ppp_calculate::satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant,
     Vector3d ez(3);
     Vector3d ey(3);
     Vector3d ex(3);
-    double sat_distance = sqrt( pow(satPos(0),2) + pow(satPos(1),2) +pow(satPos(2),2));
-    double sat_sun_distance = sqrt( pow(sat_sun(0),2) + pow(sat_sun(1),2) +pow(sat_sun(2),2));
-    double dsat_sun_distance = sqrt( pow(dsat_sun(0),2) + pow(dsat_sun(1),2) + pow(dsat_sun(2),2));
-    for(int i = 0; i < 3; i++)
-    {
-        ez(i) = satPos(i) / sat_distance;
-        ey(i) = sat_sun(i) / sat_sun_distance;
-        ex(i) = dsat_sun(i) / dsat_sun_distance;
-    }
 
-    Matrix3d e;
-    for(int i = 0; i<3; i++)
-    {
-        e(0,i) = ex(i);
-        e(1,i) = ey(i);
-        e(2,i) = ez(i);
-    }
-    MatrixXd PCO(3,1);
-    PCO(0,0) = sate_ant.APC_x;
-    PCO(1,0) = sate_ant.APC_y;
-    PCO(2,0) = sate_ant.APC_z;
-    Vector3d PCO_ecef = e * PCO;
+    ez = -1.0 * satPos / satPos.norm();
+    ey = -1.0 * sat_sun / sat_sun.norm();
+    ex = -1.0 * dsat_sun / dsat_sun.norm();
 
-    Vector3d r;
-    double r_dx = station_x - satPos(0);
-    double r_dy = station_y - satPos(1);
-    double r_dz = station_z - satPos(2);
-    double r_distance = sqrt( pow(r_dx,2) + pow(r_dy,2) + pow(r_dz,2) );
-    r(0) = r_dx / r_distance;
-    r(1) = r_dy / r_distance;
-    r(2) = r_dz / r_distance;
-
-    double s = r.dot(PCO_ecef);
-
-    double angle = acos(r.dot(ez));
-
+    Vector3d PCO(sate_ant.APC_x,sate_ant.APC_y,sate_ant.APC_z);
+    Vector3d P_rec_sat(station_x - satPos(0),station_y - satPos(1),station_z - satPos(2));
+    Vector3d r = P_rec_sat / P_rec_sat.norm();
+    double angle = acos(ez.dot(r));
     int c = ceil(angle) ;
     int f = floor(angle);
+    Vector3d PCV(0,0,(sate_ant.NOAZI[c] + sate_ant.NOAZI[f]));
+    Vector3d PCC = PCO - PCV;
+    Vector3d PCC_ECEF = ex * PCC(0) + ey * PCC(1) + ez * PCC(2);
 
-    date.antenna = (s + (sate_ant.NOAZI[c] + sate_ant.NOAZI[f])) / 1000;
+    date.antenna = r.dot(PCC_ECEF) / 1000;
 }
 
 void ppp_calculate::sunPosition(int year, int month, int day, int hour, int minute, double second, double *posCTS)
