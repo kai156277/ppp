@@ -11,6 +11,7 @@
 #include"ppp_data.h"
 #include"snx_data.h"
 #include"antmod_data.h"
+#include"ocean_date.h"
 using namespace std;
 
 int main()
@@ -23,12 +24,14 @@ int main()
     ppp_file ppp;
     snx_data snx;
     antmod_file ant;
+    ocean_file ocean;
     /*
      * QVector<QString> filePath;
      * QString pathName ="C://PPP//readFile//sp3";
      * QString fileType = "*.sp3";
      * readFilePath::readFile(filePath,pathName,fileType);
      */
+    read.ppp_ocean_read("C:/PPP/readFile/ocean/OCEAN-GOT48.dat",ocean);
     read.ppp_o_read("C://PPP//readFile//oFile//cut01680.15o",ofile);
     read.ppp_sp3_read("C:/PPP/readFile/sp3/gbm18493.sp3",sp3);
     read.ppp_clock_read("C:/PPP/readFile/clk/gbm18493.clk",clock);
@@ -40,6 +43,7 @@ int main()
 
     pppCalculate.ppp_spp(ofile,sp3,clock,ant,ppp);
     /**/
+
 
     cout << "END!";
 }

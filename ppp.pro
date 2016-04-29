@@ -31,7 +31,9 @@ SOURCES += main.cpp \
     sp3_data.cpp \
     time_system.cpp \
     coordinate_system.cpp \
-    sun_moon_position.cpp
+    sun_moon_position.cpp \
+    ocean_date.cpp \
+    tide_correction.cpp
 
 HEADERS += \
     file_read.h \
@@ -47,4 +49,6 @@ HEADERS += \
     sp3_data.h \
     time_system.h \
     coordinate_system.h \
-    sun_moon_position.h
+    sun_moon_position.h \
+    ocean_date.h \
+    tide_correction.h

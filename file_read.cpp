@@ -739,6 +739,65 @@ void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
     }while(!read.atEnd());
 }
 
+void file_read::ppp_ocean_read(const QString &file_path, ocean_file &ocean_file)
+{
+    /*Open ocean file and Create input stream---------------------------------*/
+    QFile ppp_ocean_file( file_path );
+    if(!ppp_ocean_file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can`t open" << file_path << endl;
+        exit( EXIT_FAILURE );
+    }
+    QTextStream read( &ppp_ocean_file );
+    QString readString;
+
+    /*read ocean file heard-----------------------------------------------------*/
+    do
+    {
+        readString = read.readLine();
+        if(readString.indexOf("COLUMN ORDER")>=0)
+        {
+            ocean_file.signer = readString.mid(16).simplified().split(" ");
+            ocean_file.col = ocean_file.signer.size();
+        }
+    }while(readString.indexOf("END HEADER")<0);
+
+    /*read ocean file data------------------------------------------------------*/
+    QStringList month;
+    month.reserve(12);
+    month.push_back("JAN");month.push_back("FEB");month.push_back("MAR");
+    month.push_back("APR");month.push_back("MAY");month.push_back("JUN");
+    month.push_back("Jul");month.push_back("AUG");month.push_back("SEP");
+    month.push_back("OCT");month.push_back("NOV");month.push_back("DEC");
+
+    while(!read.atEnd())
+    {
+        readString = read.readLine();
+        ocean temp;
+        readString = read.readLine();
+        temp.stationName = readString.mid(2,4);
+        readString = read.readLine();
+        temp.oceanModel = readString.mid(12,6);
+        readString = read.readLine();
+        temp.year = readString.mid(63,4).toInt();
+        temp.month = month.indexOf(readString.mid(68,3)) + 1;
+        temp.day = readString.mid(72,2).toInt();
+        readString = read.readLine();
+        temp.station_B = readString.mid(49,10).toDouble();
+        temp.station_L = readString.mid(59,10).toDouble();
+        temp.station_H = readString.mid(69,10).toDouble();
+        for (int i=0;i<6;i++)
+        {
+            readString = read.readLine();
+            for(int j=0;j<ocean_file.col;j++)
+            {
+                temp.data[i][j]=(readString.mid(1+7*j,7)).toDouble();
+            }
+        }
+        ocean_file.record.push_back( temp );
+    }
+}
+
 void file_read::phase_matching(const QStringList &match_list, system_signal &sys_list)
 {
 
