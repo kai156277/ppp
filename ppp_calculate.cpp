@@ -59,6 +59,16 @@ const double ppp_calculate::f5 = 115 * 10.23 * 1e6;
 /*GPS载波波长--------------------------------------------------------------------*/
 const double ppp_calculate::lambdal1 = ppp_calculate::c / ppp_calculate::f1;
 const double ppp_calculate::lambdal2 = ppp_calculate::c / ppp_calculate::f2;
+/*天线相位缠绕预报----------------------------------------------------------------*/
+double ppp_calculate::satellite_phase[40] = {0,0,0,0,0,0,0,0,0,0,
+                                             0,0,0,0,0,0,0,0,0,0,
+                                             0,0,0,0,0,0,0,0,0,0,
+                                             0,0,0,0,0,0,0,0,0,0};
+double ppp_calculate::station_phase[40] = {0,0,0,0,0,0,0,0,0,0,
+                                           0,0,0,0,0,0,0,0,0,0,
+                                           0,0,0,0,0,0,0,0,0,0,
+                                           0,0,0,0,0,0,0,0,0,0};
+
 
 ppp_calculate::ppp_calculate()
     :station_x(0),station_y(0),station_z(0),
@@ -219,6 +229,7 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 receiver_antenna(sate);
                 satellite_antenna_info(sate_ant,ant);
                 satellite_antenna(sate,sate_ant,sunPostion);
+                satellite_windup(sate,sate_ant,sunPostion);
                 int jjj = 0;
             }
             epoch.sate_info.push_back(sate);
@@ -479,7 +490,7 @@ void ppp_calculate::receiver_antenna(ppp_sate &date)
     date.offsetL2 = (PCO2  - offsetL2 / 4.0) / 1000.0 / ppp_calculate::lambdal2;
 }
 
-void ppp_calculate::satellite_antenna(ppp_sate &date, satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion)
+void ppp_calculate::satellite_antenna(ppp_sate &date, const satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion)
 {
     Vector3d satPos(date.position_x,date.position_y,date.position_z);
     Vector3d sunPos(sunPostion.getX(),sunPostion.getY(),sunPostion.getZ());
@@ -532,8 +543,130 @@ void ppp_calculate::satellite_antenna(ppp_sate &date, satellite_antmod &sate_ant
     Vector3d PCC_ECEF = ex * PCC(0) + ey * PCC(1) + ez * PCC(2);
 
     date.sate_antenna = r.dot(PCC_ECEF) / 1000;
-    int  i = 0;
 }
+
+void ppp_calculate::satellite_windup(ppp_sate &date, const satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion)
+{
+    /*--------------------------------星固系-------------------------------------
+     * 1. y轴平行与太阳能帆板，垂直与太阳矢量
+     * 2. z轴平行与天线指向，始终指向地球
+     * 3. x轴由y轴和z轴的矢量积确定指向
+     * -------------------------------------------------------------------------*/
+    Vector3d sun_position(sunPostion.getX(),sunPostion.getY(),sunPostion.getZ());
+    Vector3d sate_position(date.position_x,date.position_y,date.position_z);
+    Vector3d stat_position(station_x,station_y,station_z);
+    double station_latitude = station_B * Pi / 180.0;
+    double station_longitude = station_L * Pi / 180.0;
+
+
+    /*----------------------获得当前卫星的星固系坐标-------------------------------*/
+
+    /*1.获得在地心地固系下卫星质量中心到太阳质量中心的单位向量 sate_sun_i--------------*/
+    Vector3d sate_sun_i = sun_position - sate_position;
+    sate_sun_i = sate_sun_i / sate_sun_i.norm();
+
+    /*2.获得在地心地固系下卫星质量中心到地球质量中心的单位向量 sate_earth_i------------*/
+    Vector3d sate_z_i = -1 * sate_position / sate_position.norm();
+
+    /*3.获得星固系坐标的y轴，即sate_sun_i和sate_earth_i矢量积的单位向量 sate_y_i-----*/
+    Vector3d sate_y_i = sate_z_i.cross(sate_sun_i);
+    sate_y_i = sate_y_i / sate_y_i.norm();
+
+    /*4. 获得星固系坐标的x轴------------------------------------------------------*/
+    Vector3d sate_x_i = sate_y_i.cross(sate_z_i);
+    sate_x_i = sate_x_i / sate_x_i.norm();
+
+
+
+    /*-------------------------计算卫星的绕转角-----------------------------------*/
+
+    /*1.计算卫星到测站的单位矢量 sate_stat_i---------------------------------------*/
+    Vector3d sate_stat_i = stat_position - sate_position;
+    sate_stat_i = sate_stat_i / sate_stat_i.norm();
+
+    /*2.将sate_z_i投影到sate_stat_i方向上-----------------------------------------*/
+    double zk = sate_stat_i.dot(sate_z_i);
+
+    /*3.获得一个没有sate_z_i分量的向量，即位于sate_x_i和sate_y_i的平面上-------------*/
+    Vector3d dpp = sate_stat_i - zk * sate_z_i;
+
+    /*4.将dpp投影到sate_x_i和sate_y_i方向上---------------------------------------*/
+    double xk = dpp.dot(sate_x_i);
+    double yk = dpp.dot(sate_y_i);
+
+    /*5.计算卫星的绕转角(弧度)----------------------------------------------------*/
+    double alpha1 = atan2(yk,xk);
+
+
+
+    /*--------------------------获得接收机的旋转角--------------------------------*/
+
+    /*1.计算接收机到地心的单位向量-------------------------------------------------*/
+    Vector3d stat_earth_i = -1.0 * stat_position / stat_position.norm();
+
+    /*2.在UEN坐标系中定义一个仅包含北方向的向量-------------------------------------*/
+    Vector3d delta(0,0,1);
+
+    /*3.定义ENU到XYZ的旋转矩阵----------------------------------------------------*/
+    Matrix3d rot = Matrix3d::Zero();
+    rot << cos(station_latitude),0,-sin(station_latitude),
+                               0,1,0,
+           sin(station_latitude),0,cos(station_latitude);
+    delta = rot * delta;
+    rot << cos(-station_longitude),sin(-station_longitude),0,
+          -sin(-station_longitude),cos(-station_longitude),0,
+           0,0,1;
+    delta = rot * delta;
+    delta = delta.transpose();
+
+    /*4.计算测站参考系y轴的单位向量------------------------------------------------*/
+    Vector3d stat_y_i = stat_earth_i.cross(delta);
+    stat_y_i = stat_y_i / stat_y_i.norm();
+
+    /*5.计算测站参考系x轴的单位向量------------------------------------------------*/
+    Vector3d stat_x_i = stat_y_i.cross(stat_earth_i);
+    stat_x_i = stat_x_i / stat_x_i.norm();
+
+    /*6.将将stat_earth_i投影到sate_stat_i方向上-----------------------------------*/
+    double rzk = sate_stat_i.dot(stat_earth_i);
+
+    /*7.获得一个没有stat_earth_i分量的向量，即位于stat_x_i和stat_y_i的平面上---------*/
+    Vector3d rdpp = sate_stat_i - rzk * stat_earth_i;
+
+    /*8.将rdpp投影到stat_x_i和stat_y_i方向上--------------------------------------*/
+    double rxk = rdpp.dot(stat_x_i);
+    double ryk = rdpp.dot(stat_y_i);
+
+    /*9.计算测站的绕转角(弧度)----------------------------------------------------*/
+    double alpha2 = atan2(ryk,rxk);
+
+
+
+    /*--------------------------计算天线相位缠绕的影响-----------------------------*/
+
+    /*1.查找卫星天线类型是否含有"IIR",这种类型的天线有180的相位-----------------------*/
+    double wind_up = 0.0;
+    if(sate_ant.antenna_type.indexOf("IIR")>=0)
+    {
+        wind_up = Pi;
+    }
+    alpha1 = alpha1 + wind_up;
+
+    int PRN = date.PRN.mid(1,2).toInt();
+    double phase_satellite = satellite_phase[PRN];
+    double da1 = alpha1 - phase_satellite;
+    double phase_station   = station_phase[PRN];
+    double da2 = alpha2 - phase_station;
+    phase_satellite = phase_satellite + atan2(sin(da1),cos(da1));
+    phase_station = phase_station + atan2(sin(da2),cos(da2));
+
+    wind_up = phase_satellite - phase_station;
+    date.windup = wind_up / (2 *Pi);
+
+    satellite_phase[PRN] = phase_satellite;
+    station_phase[PRN] = phase_station;
+}
+
 
 int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant)
 {

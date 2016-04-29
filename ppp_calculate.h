@@ -24,7 +24,8 @@ private:
     void sate_relativity(ppp_sate &date);
     void sate_troposphere(ppp_sate &date,int doy);
     void receiver_antenna(ppp_sate &date);
-    void satellite_antenna(ppp_sate &date,satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion);
+    void satellite_antenna(ppp_sate &date, const satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion);
+    void satellite_windup(ppp_sate &date,const satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion);
     int satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant);
     double station_x;
     double station_y;
@@ -61,6 +62,10 @@ private:
     /*GPS载波的波长--------------------------------------------------------------*/
     const static double lambdal1;
     const static double lambdal2;
+    /*天线相位偏差的预报偏差-------------------------------------------------------*/
+    static double satellite_phase[40];
+    static double station_phase[40];
+
 };
 
 #endif // PPP_CALCULATE_H
