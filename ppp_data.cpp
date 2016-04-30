@@ -15,7 +15,7 @@ ppp_sate::ppp_sate()
 
 ppp_epoch::ppp_epoch()
     :sate_number(0),year(0),month(0),day(0),
-     hour(0),minute(0),second(0),GPSS(0),zhd(0)
+     hour(0),minute(0),second(0),GPSW(0),GPSS(0),zhd(0)
 {
 
 }

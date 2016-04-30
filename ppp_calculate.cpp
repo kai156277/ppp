@@ -9,6 +9,7 @@
 #include "math_function.h"
 #include "coordinate_system.h"
 #include "sun_moon_position.h"
+#include "tide_correction.h"
 
 using namespace Eigen;
 const double ppp_calculate::c = 299792458;
@@ -78,13 +79,14 @@ ppp_calculate::ppp_calculate()
 
 }
 
-void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,const antmod_file &ant, ppp_file &ppp)
+void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,const antmod_file &ant,const erp_file &erp_data, ppp_file &ppp)
 {
     //观测间隔
     double interval = clockfile.file[1].GPSS - clockfile.file[0].GPSS;
     double clock_interval = interval * 7 / 2.0;
     //坐标
     double sp3_interval = sp3file.heard.interval * 7 / 2.0;
+    XYZ_coordinate receiver(station_x,station_y,station_z);
     for(int i = 0; i<ofile.satellite_file.size(); i++)
     {
         ppp_epoch epoch;
@@ -96,14 +98,33 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
         epoch.minute = ofile.satellite_file[i].minute;
         epoch.second = ofile.satellite_file[i].second;
         epoch.sate_number = ofile.satellite_file[i].number_of_satellite;
+        epoch.GPSW = ofile.satellite_file[i].GPSW;
         epoch.GPSS = ofile.satellite_file[i].GPSS;
 
         GC_Time station_GC;
         station_GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
         DOY_Time station_DOY = time_Transform::GCtoDOY(station_GC);
-        julian_Time julian = time_Transform::GCtoJulian(station_GC);
+        julian_Time Julian = time_Transform::GCtoJulian(station_GC);
+        GPS_Time station_GPST(epoch.GPSW,epoch.GPSS);
         DOY = station_DOY.doy;
-        XYZ_coordinate sunPostion = sun_moon_position::sunPostion(julian);
+        XYZ_coordinate sunPostion = sun_moon_position::sunPostion(Julian);
+        XYZ_coordinate moonPostion = sun_moon_position::moonPostion(Julian);
+        erp erp_record;
+
+
+        /*--------------------------三潮改正基本值--------------------------------*/
+        Vector3d solidEffect = tide_correction::solidTide(receiver,sunPostion,moonPostion,station_GPST);
+        Vector3d oceanEffect = tide_correction::oceanTide(station_ocean,station_GPST);
+        for(int k = 0; k <erp_data.record.size(); k++ )
+        {
+            if (fabs(erp_data.record[k].MJD - Julian.julian) < 1)
+            {
+                erp_record = erp_data.record[k];
+            }
+        }
+        Vector3d poleEffect = tide_correction::poleTide(erp_record,receiver,station_GPST);
+        Vector3d tide = poleEffect + solidEffect + oceanEffect;
+
 
         //寻找符合历元的clock lagrange的插值起点
         double clock_find_time = epoch.GPSS - clock_interval;
@@ -222,6 +243,7 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate.velocity_y = (sate.position_y - math_function::lagrange(epoch.GPSS,velocity_y,14)) / 0.5;
                 sate.velocity_z = (sate.position_z - math_function::lagrange(epoch.GPSS,velocity_z,14)) / 0.5;
                 sate.clock = clock * ppp_calculate::c;
+
                 sate_angle(sate);       //计算卫星角度信息
                 sate_sagnac(sate);      //计算地球自转效应
                 sate_relativity(sate);  //计算相对论效应
@@ -230,7 +252,7 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 satellite_antenna_info(sate_ant,ant);
                 satellite_antenna(sate,sate_ant,sunPostion);
                 satellite_windup(sate,sate_ant,sunPostion);
-                int jjj = 0;
+                satellite_tide(sate,tide);
             }
             epoch.sate_info.push_back(sate);
         }
@@ -238,8 +260,9 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
     }
 }
 
-void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant)
+void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant, const ocean_file &ocean_data)
 {
+    /*---------------------------测站的坐标信息-----------------------------------*/
     station_x = ofile.heard.position_X;
     station_y = ofile.heard.position_Y;
     station_z = ofile.heard.position_Z;
@@ -249,10 +272,13 @@ void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant
     station_B = BLH_station.get_latitude_angle();
     station_L = BLH_station.get_longitude_angle();
     station_H = BLH_station.getHeight();
+
+
+
+    /*----------------------------测站的天线信息----------------------------------*/
     antenna_E = ofile.heard.antenna_E;
     antenna_N = ofile.heard.antenna_N;
     antenna_H = ofile.heard.antenna_H;
-
     bool ant_flag = false;
     for(int i = 0; i<ant.station.size(); i++)
     {
@@ -268,6 +294,16 @@ void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant
         station_ant.L1_NOAZI = Eigen::MatrixXd::Zero(2,2);
         station_ant.L2_NOAZI = Eigen::MatrixXd::Zero(2,2);
     }
+
+    /*----------------------------测站的海潮信息----------------------------------*/
+    for(int i = 0; i<ocean_data.record.size(); i++)
+    {
+        if(ofile.heard.marker_name == ocean_data.record[i].stationName)
+        {
+            station_ocean = ocean_data.record[i];
+        }
+    }
+
 }
 
 void ppp_calculate::sate_angle(ppp_sate &date)
@@ -666,6 +702,18 @@ void ppp_calculate::satellite_windup(ppp_sate &date, const satellite_antmod &sat
     satellite_phase[PRN] = phase_satellite;
     station_phase[PRN] = phase_station;
 }
+
+void ppp_calculate::satellite_tide(ppp_sate &data, const Vector3d &tide)
+{
+    double ele = data.elevation / 180 * Pi;
+    double azi = data.azimuth / 180 *Pi;
+    double cosel = cos(ele);
+    double sinel = sin(ele);
+    double cosaz = cos(azi);
+    double sinaz = sin(azi);
+    data.tide_effect = tide[0]*cosel*cosaz + tide[1]*cosel*sinaz + tide[2]*sinel;
+}
+
 
 
 int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant)

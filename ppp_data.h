@@ -54,6 +54,7 @@ public:
     double second;
     double zhd;
     double GPSS;
+    double GPSW;
     QVector<ppp_sate> sate_info;
 };
 

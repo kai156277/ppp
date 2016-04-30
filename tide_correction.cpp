@@ -1,22 +1,13 @@
 ﻿#include "tide_correction.h"
+const double tide_correction::Pi = 3.141592653;
 
 tide_correction::tide_correction()
 {
 
 }
 
-double tide_correction::tideEffect(Vector3d tide, neuParameter neuPos)
-{
-    double elev  = neuPos.elevation;
-    double cosel = cos(elev);
-    double sinel = sin(elev);
-    double cosaz = cos(neuPos.azimuth);
-    double sinaz = sin(neuPos.azimuth);
-    double tide1 = tide[0]*cosel*cosaz + tide[1]*cosel*sinaz + tide[2]*sinel;
-    return tide1;
-}
 
-Vector3d tide_correction::solidTide(XYZ_coordinate receiver, XYZ_coordinate sunPos, XYZ_coordinate moonPos, GPS_Time t)
+Vector3d tide_correction::solidTide(const XYZ_coordinate &receiver, const XYZ_coordinate &sunPos, const XYZ_coordinate &moonPos, GPS_Time t)
 {
     const double H20 = 0.6078;
     const double L20 = 0.0847;
@@ -27,20 +18,22 @@ Vector3d tide_correction::solidTide(XYZ_coordinate receiver, XYZ_coordinate sunP
     const double GMM = 4.9027890e12;
     const double AE  = 6378.137e3;
     //SCALAR PRODUCT OF STATION VECTOR WITH SUN/MOON VECTOR
-    Vector3d XSTA,XSUN,XMON;
-    XSTA[0] = receiver.X; XSTA[1] = receiver.Y; XSTA[2] = receiver.Z;
-    XSUN[0] = sunPos.X;   XSUN[1] = sunPos.Y;   XSUN[2] = sunPos.Z;
-    XMON[0] = moonPos.X;  XMON[1] = moonPos.Y;  XMON[2] = moonPos.Z;
-    double SCS  = XSTA.dot(XSUN);
-    double RSTA = XSTA.norm();
-    double RSUN = XSUN.norm();
-    double SCM  = XSTA.dot(XMON);
-    double RMON = XMON.norm();
+    Vector3d station_xyz,sun_xyz,moon_xyz;
+    station_xyz[0] = receiver.getX();     sun_xyz[0] = sunPos.getX();       moon_xyz[0] = moonPos.getX();
+    station_xyz[1] = receiver.getY();     sun_xyz[1] = sunPos.getY();       moon_xyz[1] = moonPos.getY();
+    station_xyz[2] = receiver.getZ();     sun_xyz[2] = sunPos.getZ();       moon_xyz[2] = moonPos.getZ();
+
+
+    double SCS  = station_xyz.dot(sun_xyz);
+    double RSTA = station_xyz.norm();
+    double RSUN = sun_xyz.norm();
+    double SCM  = station_xyz.dot(moon_xyz);
+    double RMON = moon_xyz.norm();
     double SCSUN = SCS / RSTA / RSUN;
     double SCMON = SCM / RSTA / RMON;
 
     //COMPUTATION OF NEW H2 AND L2
-    double COSPHI = sqrt(XSTA[0]*XSTA[0]+XSTA[1]*XSTA[1])/RSTA;
+    double COSPHI = sqrt(station_xyz[0]*station_xyz[0]+station_xyz[1]*station_xyz[1])/RSTA;
     double H2     = H20 - 0.0006*(1.0-1.5*COSPHI*COSPHI);
     double L2     = L20 + 0.0002*(1.0-1.5*COSPHI*COSPHI);
     //P2-TERM
@@ -66,46 +59,43 @@ Vector3d tide_correction::solidTide(XYZ_coordinate receiver, XYZ_coordinate sunP
     //TOTAL DISPLACEMENT
     for (int i=0;i<3;i++)
     {
-        DXTIDE[i] = FAC2SUN*( X2SUN*XSUN[i]/RSUN  + P2SUN*XSTA[i]/RSTA )
-                  + FAC2MON*( X2MON*XMON[i]/RMON + P2MON*XSTA[i]/RSTA )
-                  + FAC3SUN*( X3SUN*XSUN[i]/RSUN  + P3SUN*XSTA[i]/RSTA )
-                  + FAC3MON*( X3MON*XMON[i]/RMON + P3MON*XSTA[i]/RSTA );
+        DXTIDE[i] = FAC2SUN*( X2SUN*sun_xyz[i]/RSUN  + P2SUN*station_xyz[i]/RSTA )
+                  + FAC2MON*( X2MON*moon_xyz[i]/RMON + P2MON*station_xyz[i]/RSTA )
+                  + FAC3SUN*( X3SUN*sun_xyz[i]/RSUN  + P3SUN*station_xyz[i]/RSTA )
+                  + FAC3MON*( X3MON*moon_xyz[i]/RMON + P3MON*station_xyz[i]/RSTA );
     }
     //CORRECTIONS FOR THE OUT-OF-PHASE PART OF LOVE NUMBERS (PART H_2^(0)I AND L_2^(0)I )
     //FIRST, FOR THE DIURNAL BAND
     Vector3d XCOSTA;
-    XCOSTA = ST1DIU(XSTA,XSUN,XMON,FAC2SUN,FAC2MON);
+    XCOSTA = ST1DIU(station_xyz,sun_xyz,moon_xyz,FAC2SUN,FAC2MON);
     DXTIDE += XCOSTA;
     //SECOND, FOR THE SEMI-DIURNAL BAND
-    XCOSTA = ST1SEM(XSTA,XSUN,XMON,FAC2SUN,FAC2MON);
+    XCOSTA = ST1SEM(station_xyz,sun_xyz,moon_xyz,FAC2SUN,FAC2MON);
     DXTIDE += XCOSTA;
     //CORRECTIONS FOR THE LATITUDE DEPENDENCE OF LOVE NUMBERS (PART L^(1) )
-    XCOSTA = ST1L1(XSTA,XSUN,XMON,FAC2SUN,FAC2MON);
+    XCOSTA = ST1L1(station_xyz,sun_xyz,moon_xyz,FAC2SUN,FAC2MON);
     DXTIDE += XCOSTA;
     //CONSIDER CORRECTIONS FOR STEP 2
     // CORRECTIONS FOR THE DIURNAL BAND:
     // FIRST, WE NEED TO KNOW THE DATE CONVERTED IN JULIAN CENTURIES
-    julianTime JJ;
-    gregorianTime gc;
-    timeTransform::GPSTToJulian(t,JJ);
-    timeTransform::GPSTToGregorian(t,gc);
-    double T = (JJ.day-2451545.)/36525.0;
-    //AND THE HOUR IN THE DAY
-    double FHR = gc.hour + gc.minute/60 + (gc.second)/3600;
+    julian_Time Julian = time_Transform::GPSTtoJulian(t);
+    GC_Time GC = time_Transform::GPSTtoGC(t);
 
-    XCOSTA = STEP2DIU(XSTA,FHR,T);
+    double T = (Julian.julian-2451545.)/36525.0;
+    //AND THE HOUR IN THE DAY
+    double FHR = GC.hour + GC.minute/60 + (GC.second)/3600;
+
+    XCOSTA = STEP2DIU(station_xyz,FHR,T);
     DXTIDE += XCOSTA;
     //CORRECTIONS FOR THE LONG-PERIOD BAND:
-    XCOSTA = ST2LON(XSTA,T);
+    XCOSTA = ST2LON(station_xyz,T);
     DXTIDE += XCOSTA;
 
-    XYZ_coordinate rec; rec.X = XSTA[0];   rec.Y = XSTA[1];   rec.Z = XSTA[2];
-    neuCoordinate res;
-    geodetic recGeodetic;
-    coordinateTransform::XYZtoBLH(rec,recGeodetic);
+    XYZ_coordinate rec(station_xyz[0],station_xyz[1],station_xyz[2]);
+    BLH_coordinate recBLH_coordinate = coordinate_transform::XYZtoBLH(rec);
 
-    double B = recGeodetic.B *= (pi/180);
-    double L = recGeodetic.L *= (pi/180);
+    double B = recBLH_coordinate.get_latitude_radians();
+    double L = recBLH_coordinate.get_longitude_radians();
 
     Matrix3d M;
     M << -sin(B)*cos(L),-sin(B)*sin(L),cos(B),
@@ -116,7 +106,7 @@ Vector3d tide_correction::solidTide(XYZ_coordinate receiver, XYZ_coordinate sunP
     return DXTIDE;
 }
 
-Vector3d tide_correction::oceanTide(const ocean &ocean, GPS_Time t)
+Vector3d tide_correction::oceanTide(const ocean &ocean_data, GPS_Time t)
 {
     double DEG_TO_RAD=0.017453;
     double NUM_COMPONENTS = 3;
@@ -128,7 +118,7 @@ Vector3d tide_correction::oceanTide(const ocean &ocean, GPS_Time t)
         double temp = 0.0;
         for (int k=0;k<NUM_HARMONICS;k++)
         {
-            temp = temp + ocean.data[i][k]*cos(arguments(0,k)-ocean.data[i+3][k]*DEG_TO_RAD);
+            temp = temp + ocean_data.data[i][k]*cos(arguments(0,k)-ocean_data.data[i+3][k]*DEG_TO_RAD);
         }
         oLoading[i] = temp;
     }
@@ -141,21 +131,18 @@ Vector3d tide_correction::oceanTide(const ocean &ocean, GPS_Time t)
     return otide;
 }
 
-Vector3d tide_correction::poleTide(const erpDataRecord &erp, XYZ_coordinate receiver, GPS_Time t)
+Vector3d tide_correction::poleTide(const erp &erp_data, XYZ_coordinate receiver, GPS_Time t)
 {
-    double xdisp = erp.xp;
-    double ydisp = erp.yp;
-    geodetic blh;
-    coordinateTransform::XYZtoBLH(receiver,blh);
-    double B = blh.B / 180.0 * pi;
-    double L = blh.L / 180.0 * pi;
-    //double H = blh.H;
-    gregorianTime obstime(2000,1,1,12,0,0);
-    julianTime j2000;
-    julianTime t1;
-    timeTransform::gregorianToJulian(obstime,j2000);
-    timeTransform::GPSTToJulian(t,t1);
-    double timedif = (t1.day - j2000.day) / 365.25;
+    double xdisp = erp_data.Xpole;
+    double ydisp = erp_data.Ypole;
+    BLH_coordinate BLH = coordinate_transform::XYZtoBLH(receiver);
+    double B = BLH.get_latitude_radians();
+    double L = BLH.get_longitude_radians();
+
+    GC_Time obstime(2000,1,1,12,0,0);
+    julian_Time j2000 = time_Transform::GCtoJulian(obstime);
+    julian_Time t1 = time_Transform::GPSTtoJulian(t);
+    double timedif = (t1.julian - j2000.julian) / 365.25;
     double xpbar = 0.054 + timedif*0.00083;
     double ypbar = 0.357 + timedif*0.00395;
     double m1 = xdisp-xpbar;
@@ -508,13 +495,10 @@ MatrixXd tide_correction::getArg(GPS_Time t)
              0.0, 1.0,-1.0, 0.0,
              2.0, 0.0, 0.0, 0.0;
     MatrixXd arguments(1,num_harmonics);
-    dayofYear time;
-    gregorianTime Time;
-    timeTransform::GPSTToGregorian(t,Time);
-    timeTransform::gregorianToDOY(Time,time);
+    DOY_Time time = time_Transform::GPSTtoDOY(t);
     double year = time.year;
     double fday = time.sod;
-    double d  = time.DOY+365.0*(year-1975.0)+floor((year-1973.0)/4.0);
+    double d  = time.doy+365.0*(year-1975.0)+floor((year-1973.0)/4.0);
     double tt = (27392.500528+1.000000035*d)/36525.0;
     double H0 = (279.69668+(36000.768930485+3.03e-4*tt)*tt)*DEG_TO_RAD;
     double S0 = (((1.9e-6*tt-0.001133)*tt+481267.88314137)*tt+270.434358)*DEG_TO_RAD;
@@ -522,11 +506,11 @@ MatrixXd tide_correction::getArg(GPS_Time t)
 
     for (int k=0;k<num_harmonics;k++)
     {
-        double temp = sig(0,k)*fday + angfac(0,k)*H0 + angfac(1,k)*S0 + angfac(2,k)*P0 + angfac(3,k)*2*pi;
-        arguments(0,k) = fmod(temp,2*pi);
+        double temp = sig(0,k)*fday + angfac(0,k)*H0 + angfac(1,k)*S0 + angfac(2,k)*P0 + angfac(3,k)*2*Pi;
+        arguments(0,k) = fmod(temp,2*Pi);
         if(arguments(0,k) < 0.0)
         {
-            arguments(0,k) = arguments(0,k)+2*pi;
+            arguments(0,k) = arguments(0,k)+2*Pi;
         }
     }
     return arguments;

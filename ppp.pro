@@ -33,7 +33,8 @@ SOURCES += main.cpp \
     coordinate_system.cpp \
     sun_moon_position.cpp \
     ocean_date.cpp \
-    tide_correction.cpp
+    tide_correction.cpp \
+    erp_data.cpp
 
 HEADERS += \
     file_read.h \
@@ -51,4 +52,5 @@ HEADERS += \
     coordinate_system.h \
     sun_moon_position.h \
     ocean_date.h \
-    tide_correction.h
+    tide_correction.h \
+    erp_data.h

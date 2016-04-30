@@ -12,6 +12,7 @@
 #include"snx_data.h"
 #include"antmod_data.h"
 #include"ocean_date.h"
+#include"erp_data.h"
 using namespace std;
 
 int main()
@@ -25,12 +26,14 @@ int main()
     snx_data snx;
     antmod_file ant;
     ocean_file ocean;
+    erp_file erp_data;
     /*
      * QVector<QString> filePath;
      * QString pathName ="C://PPP//readFile//sp3";
      * QString fileType = "*.sp3";
      * readFilePath::readFile(filePath,pathName,fileType);
      */
+    read.ppp_erp_read("C:/PPP/readFile/erp/gbm18493.erp",erp_data);
     read.ppp_ocean_read("C:/PPP/readFile/ocean/OCEAN-GOT48.dat",ocean);
     read.ppp_o_read("C://PPP//readFile//oFile//cut01680.15o",ofile);
     read.ppp_sp3_read("C:/PPP/readFile/sp3/gbm18493.sp3",sp3);
@@ -38,10 +41,10 @@ int main()
     read.ppp_ant_read("C:/PPP/readFile/ant/antmod.dat",ant);
 
     //read.ppp_snx_read("C:/PPP/readFile/snx/igs14P1783.snx",snx,ofile.heard.marker_name);
-    pppCalculate.ppp_pretreatment(ofile,ant);
+    pppCalculate.ppp_pretreatment(ofile,ant,ocean);
 
 
-    pppCalculate.ppp_spp(ofile,sp3,clock,ant,ppp);
+    pppCalculate.ppp_spp(ofile,sp3,clock,ant,erp_data,ppp);
     /**/
 
 

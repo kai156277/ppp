@@ -737,9 +737,10 @@ void file_read::ppp_ant_read(const QString &file_path, antmod_file &ant)
             }
         }
     }while(!read.atEnd());
+    ppp_ant_file.close();
 }
 
-void file_read::ppp_ocean_read(const QString &file_path, ocean_file &ocean_file)
+void file_read::ppp_ocean_read(const QString &file_path, ocean_file &ocean_data)
 {
     /*Open ocean file and Create input stream---------------------------------*/
     QFile ppp_ocean_file( file_path );
@@ -757,8 +758,8 @@ void file_read::ppp_ocean_read(const QString &file_path, ocean_file &ocean_file)
         readString = read.readLine();
         if(readString.indexOf("COLUMN ORDER")>=0)
         {
-            ocean_file.signer = readString.mid(16).simplified().split(" ");
-            ocean_file.col = ocean_file.signer.size();
+            ocean_data.signer = readString.mid(16).simplified().split(" ");
+            ocean_data.col = ocean_data.signer.size();
         }
     }while(readString.indexOf("END HEADER")<0);
 
@@ -789,13 +790,67 @@ void file_read::ppp_ocean_read(const QString &file_path, ocean_file &ocean_file)
         for (int i=0;i<6;i++)
         {
             readString = read.readLine();
-            for(int j=0;j<ocean_file.col;j++)
+            for(int j=0;j<ocean_data.col;j++)
             {
                 temp.data[i][j]=(readString.mid(1+7*j,7)).toDouble();
             }
         }
-        ocean_file.record.push_back( temp );
+        ocean_data.record.push_back( temp );
     }
+    ppp_ocean_file.close();
+}
+
+void file_read::ppp_erp_read(const QString &file_path, erp_file &erp_data)
+{
+    /*Open erp file and Create input stream---------------------------------*/
+    QFile ppp_erp_file( file_path );
+    if(!ppp_erp_file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can`t open" << file_path << endl;
+        exit( EXIT_FAILURE );
+    }
+    QTextStream read( &ppp_erp_file );
+    QString readString = read.readLine();
+    const double jdToMjd = 2400000.5;
+    bool flag1 = false;
+    bool flag2 = false;
+    while(1)
+    {
+        readString = read.readLine();
+        if(readString.indexOf("dpsi")>=0)
+        {
+            flag1 = true;
+        }
+        if(readString.indexOf("deps")>=0)
+        {
+            flag2 = true;
+        }
+        if(readString.indexOf("MJD")>=0)
+        {
+            break;
+        }
+    }
+    readString = read.readLine();
+    while(!read.atEnd())
+    {
+        readString = read.readLine();
+        erp temp;
+        temp.MJD       = readString.mid( 0, 8).toDouble() + jdToMjd;
+        temp.Xpole     = readString.mid( 8, 9).toDouble()*1e-6;
+        temp.Ypole     = readString.mid(17, 9).toDouble()*1e-6;
+        temp.UT1_UTC   = readString.mid(26,10).toDouble();
+        if(flag1 == true)
+        {
+            temp.dpsi = readString.mid(112,7).toDouble();
+        }
+        if(flag2 == true)
+        {
+            temp.deps = readString.mid(119,8).toDouble();
+        }
+        erp_data.record.push_back( temp );
+    }
+
+    ppp_erp_file.close();
 }
 
 void file_read::phase_matching(const QStringList &match_list, system_signal &sys_list)
