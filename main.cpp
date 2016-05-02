@@ -13,6 +13,8 @@
 #include"antmod_data.h"
 #include"ocean_date.h"
 #include"erp_data.h"
+#include"ppp_model.h"
+#include"output.h"
 using namespace std;
 
 int main()
@@ -27,6 +29,8 @@ int main()
     antmod_file ant;
     ocean_file ocean;
     erp_file erp_data;
+    ppp_model model;
+    result_file result;
     /*
      * QVector<QString> filePath;
      * QString pathName ="C://PPP//readFile//sp3";
@@ -45,6 +49,8 @@ int main()
 
 
     pppCalculate.ppp_spp(ofile,sp3,clock,ant,erp_data,ppp);
+    model.generic_model(ppp,result);
+    output::writePPP(result);
     /**/
 
 

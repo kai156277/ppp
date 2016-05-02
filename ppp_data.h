@@ -8,6 +8,9 @@ class ppp_sate
 {
 public:
     ppp_sate();
+    bool operator<(const ppp_sate &right) const;
+
+
     QString PRN;
     double position_x;
     double position_y;
@@ -55,6 +58,7 @@ public:
     double zhd;
     double GPSS;
     double GPSW;
+    QStringList PRN;
     QVector<ppp_sate> sate_info;
 };
 
@@ -62,8 +66,30 @@ class ppp_file
 {
 public:
     ppp_file();
+    double receiver_x;
+    double receiver_y;
+    double receiver_z;
     QVector<ppp_epoch> file;
 };
 
+class ppp_X
+{
+public:
+    ppp_X();
+
+    double dx;
+    double dy;
+    double dz;
+    double dt;
+    double trop;
+    QVector<double> N;
+};
+
+class result_file
+{
+public:
+    result_file();
+    QVector<ppp_X> file;
+};
 
 #endif // PPP_DATE_H

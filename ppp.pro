@@ -34,7 +34,10 @@ SOURCES += main.cpp \
     sun_moon_position.cpp \
     ocean_date.cpp \
     tide_correction.cpp \
-    erp_data.cpp
+    erp_data.cpp \
+    correct.cpp \
+    ppp_model.cpp \
+    output.cpp
 
 HEADERS += \
     file_read.h \
@@ -53,4 +56,7 @@ HEADERS += \
     sun_moon_position.h \
     ocean_date.h \
     tide_correction.h \
-    erp_data.h
+    erp_data.h \
+    correct.h \
+    ppp_model.h \
+    output.h

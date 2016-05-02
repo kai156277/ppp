@@ -58,8 +58,8 @@ const double ppp_calculate::f1 = 154 * 10.23 * 1e6;
 const double ppp_calculate::f2 = 120 * 10.23 * 1e6;
 const double ppp_calculate::f5 = 115 * 10.23 * 1e6;
 /*GPS载波波长--------------------------------------------------------------------*/
-const double ppp_calculate::lambdal1 = ppp_calculate::c / ppp_calculate::f1;
-const double ppp_calculate::lambdal2 = ppp_calculate::c / ppp_calculate::f2;
+const double ppp_calculate::lambda1 = ppp_calculate::c / ppp_calculate::f1;
+const double ppp_calculate::lambda2 = ppp_calculate::c / ppp_calculate::f2;
 /*天线相位缠绕预报----------------------------------------------------------------*/
 double ppp_calculate::satellite_phase[40] = {0,0,0,0,0,0,0,0,0,0,
                                              0,0,0,0,0,0,0,0,0,0,
@@ -81,6 +81,10 @@ ppp_calculate::ppp_calculate()
 
 void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,const antmod_file &ant,const erp_file &erp_data, ppp_file &ppp)
 {
+    ppp.receiver_x = ofile.heard.position_X;
+    ppp.receiver_y = ofile.heard.position_Y;
+    ppp.receiver_z = ofile.heard.position_Z;
+    bool cmp(const ppp_sate &a,const ppp_sate &b);
     //观测间隔
     double interval = clockfile.file[1].GPSS - clockfile.file[0].GPSS;
     double clock_interval = interval * 7 / 2.0;
@@ -243,6 +247,7 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate.velocity_y = (sate.position_y - math_function::lagrange(epoch.GPSS,velocity_y,14)) / 0.5;
                 sate.velocity_z = (sate.position_z - math_function::lagrange(epoch.GPSS,velocity_z,14)) / 0.5;
                 sate.clock = clock * ppp_calculate::c;
+                epoch.PRN.push_back(sate.PRN);
 
                 sate_angle(sate);       //计算卫星角度信息
                 sate_sagnac(sate);      //计算地球自转效应
@@ -256,8 +261,14 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
             }
             epoch.sate_info.push_back(sate);
         }
+        //std::sort(epoch.sate_info.begin(),epoch.sate_info.end(),cmp);
         ppp.file.push_back(epoch);
     }
+}
+
+bool cmp(const ppp_sate &a, const ppp_sate &b)
+{
+    return a < b;
 }
 
 void ppp_calculate::ppp_pretreatment(const o_file &ofile, const antmod_file &ant, const ocean_file &ocean_data)
@@ -522,8 +533,8 @@ void ppp_calculate::receiver_antenna(ppp_sate &date)
                station_ant.L1_NOAZI(a+1,e) + station_ant.L1_NOAZI(a,  e+1);
     double offsetL2 = station_ant.L2_NOAZI(a,  e) + station_ant.L2_NOAZI(a+1,e+1) +
                station_ant.L2_NOAZI(a+1,e) + station_ant.L2_NOAZI(a,  e+1);
-    date.offsetL1 = (PCO1  - offsetL1 / 4.0) / 1000.0 / ppp_calculate::lambdal1;
-    date.offsetL2 = (PCO2  - offsetL2 / 4.0) / 1000.0 / ppp_calculate::lambdal2;
+    date.offsetL1 = (PCO1  - offsetL1 / 4.0) / 1000.0 / ppp_calculate::lambda1;
+    date.offsetL2 = (PCO2  - offsetL2 / 4.0) / 1000.0 / ppp_calculate::lambda2;
 }
 
 void ppp_calculate::satellite_antenna(ppp_sate &date, const satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion)

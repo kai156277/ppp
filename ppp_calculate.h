@@ -22,6 +22,7 @@ public:
     void ppp_spp(const o_file &ofile,const sp3_file &sp3file,const clock_file &clockfile,const antmod_file &ant,const erp_file &erp_data,ppp_file &ppp);
     void ppp_pretreatment(const o_file &ofile, const antmod_file &ant, const ocean_file &ocean_data);
 private:
+
     void sate_angle(ppp_sate &date);
     void sate_sagnac(ppp_sate &date);
     void sate_relativity(ppp_sate &date);
@@ -65,8 +66,8 @@ private:
     const static double f2;
     const static double f5;
     /*GPS载波的波长--------------------------------------------------------------*/
-    const static double lambdal1;
-    const static double lambdal2;
+    const static double lambda1;
+    const static double lambda2;
     /*天线相位偏差的预报偏差-------------------------------------------------------*/
     static double satellite_phase[40];
     static double station_phase[40];

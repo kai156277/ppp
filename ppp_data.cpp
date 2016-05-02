@@ -12,6 +12,18 @@ ppp_sate::ppp_sate()
 
 }
 
+bool ppp_sate::operator<(const ppp_sate &right) const
+{
+    if(this->PRN <right.PRN)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 ppp_epoch::ppp_epoch()
     :sate_number(0),year(0),month(0),day(0),
@@ -22,6 +34,20 @@ ppp_epoch::ppp_epoch()
 
 
 ppp_file::ppp_file()
+    :receiver_x(0),receiver_y(0),receiver_z(0)
+{
+
+}
+
+
+ppp_X::ppp_X()
+    :dx(0),dy(0),dz(0),dt(0),trop(0)
+{
+
+}
+
+
+result_file::result_file()
 {
 
 }
