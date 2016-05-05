@@ -267,10 +267,11 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 satellite_windup(sate,sate_ant,sunPostion);
                 satellite_tide(sate,tide);
                 satellite_ionized(sate);
+                epoch.sate_info.push_back(sate);
             }
-            epoch.sate_info.push_back(sate);
         }
         epoch.sate_number = epoch.sate_info.size();
+        std::sort(epoch.PRN.begin(),epoch.PRN.end());
         std::sort(epoch.sate_info.begin(),epoch.sate_info.end(),cmp);
         ppp.file.push_back(epoch);
     }

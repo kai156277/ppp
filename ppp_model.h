@@ -18,9 +18,13 @@ private:
                         MatrixXd &H,  MatrixXd &R, MatrixXd &Z, MatrixXd &I,
                         const VectorXd &X1 ,const MatrixXd &B1 , const MatrixXd &Nbb_,
                         const MatrixXd &L1, const ppp_epoch &epoch);
-    QVector<bool> cycle_slip(const ppp_epoch &epoch1,const ppp_epoch &epoch2);
+    void building_kalman(const ppp_epoch &epoch, MatrixXd &B, MatrixXd &L, MatrixXd &R);
+    void building_kalman(const QVector<bool> &cycle, const ppp_epoch &epoch, const QStringList &epoch1,
+                         MatrixXd &X, MatrixXd &B, MatrixXd &Pt, MatrixXd &R,
+                         MatrixXd &L, MatrixXd &F, MatrixXd &Q, MatrixXd &I);
+    QVector<bool> cycle_slip(const ppp_epoch &epoch1, const ppp_epoch &epoch2 );
     void point_positioning(const ppp_epoch &epoch, VectorXd &X, MatrixXd &B, MatrixXd &Nbb_, MatrixXd &L);
-
+    static void row_swap(MatrixXd &a,int a_row, const MatrixXd &b,int b_row,int col);
     static double receiver_x;
     static double receiver_y;
     static double receiver_z;
@@ -33,6 +37,7 @@ private:
     const static double f2;
     const static double f5;
     /*GPS载波的波长--------------------------------------------------------------*/
+    const static double lambda;
     const static double lambda1;
     const static double lambda2;
 };
