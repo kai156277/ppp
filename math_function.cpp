@@ -1,5 +1,9 @@
 ﻿#include <iostream>
 #include "math_function.h"
+#include<fstream>
+#include<iostream>
+
+using namespace std;
 
 math_function::math_function()
 {
@@ -51,20 +55,48 @@ void math_function::kalman_filter(      MatrixXd &Xt, const MatrixXd &F,
                                   const MatrixXd &H,  const MatrixXd &R,
                                   const MatrixXd &Z,  const MatrixXd &I)
 {
+    fstream f1("C:/PPP/readFile/1/Kt.r", std::ios::app);
+    fstream f2("C:/PPP/readFile/1/Pt.r", std::ios::app);
+    fstream f3("C:/PPP/readFile/1/A.r", std::ios::app);
+    fstream f4("C:/PPP/readFile/1/B.r", std::ios::app);
+    fstream f5("C:/PPP/readFile/1/P.r", std::ios::app);
+    fstream f6("C:/PPP/readFile/1/H.r", std::ios::app);
+    fstream f7("C:/PPP/readFile/1/Z.r", std::ios::app);
     MatrixXd HT = H.transpose();
     MatrixXd FT = F.transpose();
 
-    /*1.计算增益矩阵K------------------------------------------------------------*/
-    MatrixXd Kt_1= (H * Pt * HT + R).inverse();
-    MatrixXd Kt  = Pt * HT * Kt_1;
-
-
-    /*2.更新观测值：改正----------------------------------------------------------*/
-    MatrixXd X = Xt + Kt * (Z - H * Xt);
-    MatrixXd P = ( I - Kt * H) * Pt;
-
 
     /*3.更新时间：预测------------------------------------------------------------*/
-    Xt = F * X;
-    Pt = F * P* FT + Q;
+    MatrixXd X = F * Xt;
+    MatrixXd P = F * Pt* FT + Q;
+
+    /*1.计算增益矩阵K------------------------------------------------------------*/
+    MatrixXd Kt_1= (H * P * HT + R).inverse();
+    MatrixXd Kt  = P * HT * Kt_1;
+    f1 << "Kt:" << endl;
+    f1 << Kt << endl;
+    f2 << "Pt:" << endl;
+    f2 << Pt<< endl;
+
+    MatrixXd A = Z - H * X;
+    MatrixXd B = ( I - Kt * H);
+    /*2.更新观测值：改正----------------------------------------------------------*/
+    Xt = X + Kt * A;
+    Pt = B * P;
+
+
+    f3 << "A:" << endl;
+    f3 << A<< endl;
+    f4 << "B:" << endl;
+    f4 << B<< endl;
+    f5 << "P:" << endl;
+    f5 << P<< endl;
+    f6 << "H:" << endl;
+    f6 << H<< endl;
+    f7 << "Z:" << endl;
+    f7 << Z<< endl;
+    f7 << "H * X:" << endl;
+    f7 << H * X<< endl;
+
+
 }

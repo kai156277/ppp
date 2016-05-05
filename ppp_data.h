@@ -29,6 +29,8 @@ public:
     double P2;
     double L1;
     double L2;
+    double ionized_pseudo;
+    double ionized_carrier;
     double trop_delay;
     double trop_map;
     double relativity;

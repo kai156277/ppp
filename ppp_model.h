@@ -15,11 +15,11 @@ public:
 private:
     void kalman_prepare();
     void building_kalman(MatrixXd &Xt, MatrixXd &F, MatrixXd &Pt, MatrixXd &Q,
-                        MatrixXd &H,  MatrixXd &R, MatrixXd &Z,
-                        const Vector4d &X1 , const Matrix4d &Q1,
-                        const MatrixXd &B1 , const ppp_epoch &epoch);
+                        MatrixXd &H,  MatrixXd &R, MatrixXd &Z, MatrixXd &I,
+                        const VectorXd &X1 ,const MatrixXd &B1 , const MatrixXd &Nbb_,
+                        const MatrixXd &L1, const ppp_epoch &epoch);
     QVector<bool> cycle_slip(const ppp_epoch &epoch1,const ppp_epoch &epoch2);
-    void point_positioning(const ppp_epoch &epoch, Vector4d &X, Matrix4d &Q, MatrixXd &B);
+    void point_positioning(const ppp_epoch &epoch, VectorXd &X, MatrixXd &B, MatrixXd &Nbb_, MatrixXd &L);
 
     static double receiver_x;
     static double receiver_y;

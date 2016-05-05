@@ -32,6 +32,7 @@ private:
     void satellite_windup(ppp_sate &date,const satellite_antmod &sate_ant, const XYZ_coordinate &sunPostion);
     void satellite_tide(ppp_sate &data, const Eigen::Vector3d &tide);
     int satellite_antenna_info(satellite_antmod &sate_ant, const antmod_file &ant);
+    void satellite_ionized(ppp_sate &date);
     double station_x;
     double station_y;
     double station_z;

@@ -101,7 +101,6 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
         epoch.hour   = ofile.satellite_file[i].hour;
         epoch.minute = ofile.satellite_file[i].minute;
         epoch.second = ofile.satellite_file[i].second;
-        epoch.sate_number = ofile.satellite_file[i].number_of_satellite;
         epoch.GPSW = ofile.satellite_file[i].GPSW;
         epoch.GPSS = ofile.satellite_file[i].GPSS;
 
@@ -175,6 +174,10 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
             sate.L2 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[4];
             sate.L3 = ofile.satellite_file[i].satellite_epoch[j].satellite_observation_value[5];
 
+            if(sate.P1 == 0||sate.P2 == 0)
+            {
+                continue;
+            }
 
             //计算钟差
             for(int k = 0; k<7; k++)
@@ -247,9 +250,14 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 sate.velocity_y = (sate.position_y - math_function::lagrange(epoch.GPSS,velocity_y,14)) / 0.5;
                 sate.velocity_z = (sate.position_z - math_function::lagrange(epoch.GPSS,velocity_z,14)) / 0.5;
                 sate.clock = clock * ppp_calculate::c;
-                epoch.PRN.push_back(sate.PRN);
+
 
                 sate_angle(sate);       //计算卫星角度信息
+                if(sate.elevation < 15)
+                {
+                    continue;
+                }
+                epoch.PRN.push_back(sate.PRN);
                 sate_sagnac(sate);      //计算地球自转效应
                 sate_relativity(sate);  //计算相对论效应
                 sate_troposphere(sate,DOY); //计算对流层效应
@@ -258,10 +266,12 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
                 satellite_antenna(sate,sate_ant,sunPostion);
                 satellite_windup(sate,sate_ant,sunPostion);
                 satellite_tide(sate,tide);
+                satellite_ionized(sate);
             }
             epoch.sate_info.push_back(sate);
         }
-        //std::sort(epoch.sate_info.begin(),epoch.sate_info.end(),cmp);
+        epoch.sate_number = epoch.sate_info.size();
+        std::sort(epoch.sate_info.begin(),epoch.sate_info.end(),cmp);
         ppp.file.push_back(epoch);
     }
 }
@@ -782,4 +792,16 @@ int ppp_calculate::satellite_antenna_info(satellite_antmod &sate_ant, const antm
         }
     }
     return 0;
+}
+
+void ppp_calculate::satellite_ionized(ppp_sate &date)
+{
+    double pseudo1 = date.P1 + lambda1*date.offsetL1;
+    double pseudo2 = date.P2 + lambda2*date.offsetL2;
+    double carrier1  = lambda1 * (date.L1+date.offsetL1-date.windup);
+    double carrier2  = lambda2 * (date.L2+date.offsetL2-date.windup);
+    double line1 =  pow(f1,2) / (pow(f1,2)-pow(f2,2));
+    double line2 = -pow(f2,2) / (pow(f1,2)-pow(f2,2));
+    date.ionized_pseudo = line1 * pseudo1 + line2 * pseudo2;
+    date.ionized_carrier = line1 * carrier1 + line2 * carrier2;
 }

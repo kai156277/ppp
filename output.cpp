@@ -22,9 +22,10 @@ void output::writePPP(const result_file &file)
     QTextStream write( &result_file );
     for(int i = 0; i<file.file.size(); i++)
     {
-        write << file.file[i].dx << "\t"
-              << file.file[i].dy << "\t"
-              << file.file[i].dz << endl;
+        write << qSetFieldWidth(17) << file.file[i].dx
+              << qSetFieldWidth(17) << file.file[i].dy
+              << qSetFieldWidth(17) << file.file[i].dz << endl;
     }
+    result_file.close();
 }
 
