@@ -1,9 +1,6 @@
 ﻿#include <iostream>
 #include "math_function.h"
-#include<fstream>
-#include<iostream>
 
-using namespace std;
 
 math_function::math_function()
 {

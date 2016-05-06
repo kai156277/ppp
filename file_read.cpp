@@ -396,51 +396,19 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
             info.station_z    = readString.mid(49,11).toDouble();
             clock.heard.satation_info.push_back(info);
         }
-        else if(readString.indexOf("# OF SOLN SATS")>=0)
-        {
-            clock.heard.satellite_num = readString.mid(0,6).toInt();
-        }
-        else if(readString.indexOf("PRN LIST")>=0)
-        {
-            int num = ceil(clock.heard.satellite_num / 15.0);
-            for(int i = 0; i<num; i++)
-            {
-                for(int j = 0; j<15; j++)
-                {
-                    clock.heard.satellite_list.push_back(readString.mid(0+j*4,3));
-                }
-                readString = read.readLine();
-            }
-        }
+
+
     }while(readString.indexOf("END OF HEADER")<=0);
 
-    /*获取每种卫星数量*/
-    QStringList num ;
-    num = clock.heard.satellite_list.filter("C");
-    clock.heard.BDS_satellites = num.size();
-    num = clock.heard.satellite_list.filter("G");
-    clock.heard.GPS_satellites = num.size();
-    num = clock.heard.satellite_list.filter("R");
-    clock.heard.GLONASS_satellites = num.size();
-    num = clock.heard.satellite_list.filter("J");
-    clock.heard.QZSS_satellites = num.size();
-    num = clock.heard.satellite_list.filter("E");
-    clock.heard.Galileo_satellites = num.size();
-    num = clock.heard.satellite_list.filter("S");
-    clock.heard.SBAS_satellites = num.size();
 
     /*read data*/
-    bool readFlag = true;
     do
     {
-        if(readFlag == true)
-        {
             readString = read.readLine();
-        }
+
         QString clock_type = readString.mid(0,2);
-        if(clock_type == "AS")
+        if(clock_type == "AS" && readString.mid(3,1) == "G")
         {
-            readFlag = false;
             clock_epoch epoch;
             epoch.year       = readString.mid(8,4).toInt();
             epoch.month      = readString.mid(12,3).toInt();
@@ -456,62 +424,16 @@ void file_read::ppp_clock_read(const QString &file_path, clock_file &clock)
             epoch.GPSW = GPST.GPSW;
             epoch.GPSS = GPST.GPSS;
 
-            for(int i = 0; i<6; i++)
+            do
             {
-                if(readString.mid(3,1) == "G")
-                {
-                    for(int j = 0; j<clock.heard.GPS_satellites; j++)
-                    {
-
-                        clock_info sate_date;
-                        readString = read.readLine();
-                        sate_date.sate_name = readString.mid(3,3);
-                        sate_date.clock_bias = readString.mid(40,20).toDouble();
-                        sate_date.clock_bias_sigma = readString.mid(60,20).toDouble();
-                        epoch.GPS_epoch.push_back(sate_date);
-                    }
-                }
-                else if(readString.mid(3,1) == "R")
-                {
-                    for(int j = 0; j<clock.heard.GLONASS_satellites; j++)
-                    {
-                        readString = read.readLine();
-                    }
-                }
-                else if(readString.mid(3,1) == "E")
-                {
-                    for(int k = 0; k<clock.heard.Galileo_satellites; k++)
-                    {
-                        readString = read.readLine();
-                    }
-                }
-                else if(readString.mid(3,1) == "C")
-                {
-                    for(int j = 0; j<clock.heard.BDS_satellites; j++)
-                    {
-                        readString = read.readLine();
-                    }
-                }
-                else if(readString.mid(3,1) == "S")
-                {
-                    for(int k = 0; k<clock.heard.SBAS_satellites; k++)
-                    {
-                        readString = read.readLine();
-                    }
-                }
-                else if(readString.mid(3,1) == "J")
-                {
-                    for(int k = 0; k<clock.heard.QZSS_satellites; k++)
-                    {
-                        readString = read.readLine();
-                    }
-                }
-            }
+                clock_info sate_date;
+                sate_date.sate_name = readString.mid(3,3);
+                sate_date.clock_bias = readString.mid(40,20).toDouble();
+                sate_date.clock_bias_sigma = readString.mid(60,20).toDouble();
+                epoch.GPS_epoch.push_back(sate_date);
+                readString = read.readLine();
+            }while(readString.mid(3,1) == "G");
             clock.file.push_back(epoch);
-        }
-        else
-        {
-            readFlag = true;
         }
     }while(!read.atEnd());
     ppp_clock_file.close();

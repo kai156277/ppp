@@ -4,7 +4,10 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <fstream>
+#include <iomanip>
 
+using namespace std;
 using namespace Eigen;
 
 const double ppp_model::Pi = 3.141592653;
@@ -28,22 +31,21 @@ ppp_model::ppp_model()
 
 void ppp_model::generic_model(const ppp_file &file, result_file &result)
 {
+    fstream f4("C:\\PPP\\readFile\\1\\kalman.txt",ios::app);
+
     receiver_x = file.receiver_x;
     receiver_y = file.receiver_y;
     receiver_z = file.receiver_z;
     int size = file.file.size() - 1;
     /*-------------------------------计算初始值----------------------------------*/
     VectorXd X1;
-    MatrixXd Nbb_,B1,Xt, F, Pt, Q, H,  R, Z,I;
-    point_positioning(file.file[0],X1,B1,Nbb_,Z);
-    building_kalman(Xt,F,Pt,Q,H,R,Z,I,X1,B1,Nbb_,Z,file.file[0]);
-
+    MatrixXd B1,Xt, F, Pt, Q, H,R, Z,I;
+    point_positioning(file.file[0],X1,B1,Z);
+    building_kalman(Xt,F,Pt,Q,H,R,Z,I,X1,B1,Z,file.file[0]);
+    math_function::kalman_filter(Xt,F,Pt,Q,H,R,Z,I);
+    bool flag = true;
     for(int i = 0; i<size; i++)
     {
-        if(i == 1643)
-        {
-            int j = 0;
-        }
         /*1.周跳探测-------------------------------------------------------------*/
         QVector<bool> cycle = cycle_slip(file.file[i],file.file[i+1]);
         if((cycle.indexOf(true) >= 0)||cycle.size()!=file.file[i].sate_number)
@@ -55,20 +57,24 @@ void ppp_model::generic_model(const ppp_file &file, result_file &result)
         {
             /*不存在周跳---------------------------------------------------------*/
             building_kalman(file.file[i+1],H,Z,R);
+            flag = false;
         }
 
         /*2.kalman filter*/
         math_function::kalman_filter(Xt,F,Pt,Q,H,R,Z,I);
-        ppp_X X;
-        X.dx = Xt(0,0);   X.dy = Xt(1,0);   X.dz = Xt(2,0);   X.dt = Xt(3,0);
-        result.file.push_back(X);
+        f4 << file.file[i].year << "-" << file.file[i].month << "-" << file.file[i].day << "-"
+           << file.file[i].hour << "-" << file.file[i].minute << "-" <<file.file[i].second
+           << setw(15) << Xt.transpose() << endl;
+
+
         std::cout << i << "\t";
     }
+    f4.close();
 }
 
 void ppp_model::building_kalman(MatrixXd &Xt, MatrixXd &F, MatrixXd &Pt, MatrixXd &Q,
                                MatrixXd &H, MatrixXd &R, MatrixXd &Z, MatrixXd &I,
-                               const VectorXd &X1, const MatrixXd &B1,const MatrixXd &Nbb_,
+                               const VectorXd &X1, const MatrixXd &B1,
                                const MatrixXd &L1, const ppp_epoch & epoch)
 {
     int sate_num = epoch.sate_info.size();
@@ -80,7 +86,19 @@ void ppp_model::building_kalman(MatrixXd &Xt, MatrixXd &F, MatrixXd &Pt, MatrixX
     F.setIdentity(num,num);
 
     /*3.状态向量的协方差矩阵------------------------------------------------------*/
-    Pt = Nbb_ ;
+    //Pt = Nbb_ ;
+
+    Pt.setZero(num,num);
+    for(int i = 0; i<3; i++)
+    {
+        Pt(i,i) = 1e5;
+    }
+    Pt(3,3) = 1e6;
+    Pt(4,4) = 900;
+    for(int i = 0; i<sate_num; i++)
+    {
+        Pt(5+i,5+i) = 1e20;
+    }
 
 
     /*4.动态噪声的协方差阵--------------------------------------------------------*/
@@ -207,8 +225,6 @@ void ppp_model::building_kalman(const QVector<bool> &cycle, const ppp_epoch &epo
      * -------------------------------------------------------------------------*/
     int num = epoch.sate_info.size();
     int dnum = num * 2;
-    MatrixXd X1;
-    X1 = X;
     VectorXd r(dnum);          //近似伪距
     VectorXd ionized(dnum);    //电离层
     VectorXd w(dnum);          //其他误差
@@ -267,25 +283,33 @@ void ppp_model::building_kalman(const QVector<bool> &cycle, const ppp_epoch &epo
     L = l;
 
     /*3.状态向量的协方差矩阵------------------------------------------------------*/
-    Pt = (B.transpose() * B).inverse();
-
-    /*4.状态向量*/
-    MatrixXd X2;
-    X2 = Pt * B.transpose() * l;
-    X = X2;
-    for(int i = 0; i<num; i++)
+    QVector<double> Pt0(num,0);
+    QVector<double> Pt1(5,0);
+    for(int i = 0; i<cycle.size();i++)
     {
         if(cycle[i] == true)
         {
-            /*周跳卫星-----------------------------------------------------------*/
-            X(5+i,0) = X2(5+i,0);
+            Pt0[i] = 1e20;
         }
         else
         {
-            /*没有周跳的卫星*/
             int index = epoch1.indexOf(epoch.PRN[i]);
-            X(5+i,0) = X1(5+index,0);
+            Pt0[i] = Pt(5+index,5+index);
+
         }
+    }
+    for(int i = 0; i<5; i++)
+    {
+        Pt1[i] = Pt(i,i);
+    }
+    Pt.setZero(5+num,5+num);
+    for(int i = 0; i<5; i++)
+    {
+        Pt(i,i) = Pt1[i];
+    }
+    for(int i = 0; i<num; i++)
+    {
+        Pt(5+i,5+i) = Pt0[i];
     }
 
     /*4.观测值的协方差矩阵--------------------------------------------------------*/
@@ -305,10 +329,44 @@ void ppp_model::building_kalman(const QVector<bool> &cycle, const ppp_epoch &epo
         }
     }
 
-    /*5.状态转移矩阵-------------------------------------------------------------*/
+    /*5.状态向量-----------------------------------------------------------------*/
+    MatrixXd X2;
+    X2 = (B.transpose() * B).inverse() * B.transpose() * l;
+    QVector<double> X0(num,0);
+    QVector<double> X1(5,0);
+    for(int i = 0; i<cycle.size();i++)
+    {
+        if(cycle[i] == true)
+        {
+            X0[i] = X2(5+i,0);
+        }
+        else
+        {
+            int index = epoch1.indexOf(epoch.PRN[i]);
+            X0[i] = X(5+index,0);
+
+        }
+    }
+    for(int i = 0 ; i<5; i++)
+    {
+        X1[i] = X(i,0);
+    }
+    X.setZero(5+num,1);
+    for(int i = 0; i<5; i++)
+    {
+        X(i,0) = X1[i];
+    }
+    for(int i = 0 ; i<cycle.size(); i++)
+    {
+        X(5+i,0) = X0[i];
+    }
+
+
+
+    /*6.状态转移矩阵-------------------------------------------------------------*/
     F.setIdentity(5+num,5+num);
 
-    /*6.动态噪声的协方差阵--------------------------------------------------------*/
+    /*7.动态噪声的协方差阵--------------------------------------------------------*/
     Q.setZero(5+num,5+num);
     Q(3,3) = 900;
     Q(4,4) = 1e-8;
@@ -387,7 +445,7 @@ QVector<bool> ppp_model::cycle_slip(const ppp_epoch &epoch1, const ppp_epoch &ep
     }
 }
 
-void ppp_model::point_positioning(const ppp_epoch &epoch, VectorXd &X,MatrixXd &B,MatrixXd &Nbb_, MatrixXd &L)
+void ppp_model::point_positioning(const ppp_epoch &epoch, VectorXd &X,MatrixXd &B, MatrixXd &L)
 {
     /*---------------------------伪距/载波联合单点定位-----------------------------
      * 1.将两个定位方程联合用于一次解出 dx,dy,dz,dt,T和每颗卫星的N
@@ -410,6 +468,7 @@ void ppp_model::point_positioning(const ppp_epoch &epoch, VectorXd &X,MatrixXd &
     VectorXd ionized(dnum);    //电离层
     VectorXd w(dnum);          //其他误差
     VectorXd l(dnum);
+    MatrixXd Nbb_;
     B.setZero(dnum,5+num);
 
     /*-----------------------------构造伪距的观测方程-----------------------------*/
@@ -466,6 +525,7 @@ void ppp_model::point_positioning(const ppp_epoch &epoch, VectorXd &X,MatrixXd &
     X = Nbb_ * B.transpose() * l;
 
     L = l;
+
 }
 
 void ppp_model::row_swap(MatrixXd &a, int a_row, const MatrixXd &b, int b_row,int col)

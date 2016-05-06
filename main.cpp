@@ -50,7 +50,7 @@ int main()
 
     pppCalculate.ppp_spp(ofile,sp3,clock,ant,erp_data,ppp);
     model.generic_model(ppp,result);
-    output::writePPP(result);
+    //output::writePPP(result);
     /**/
 
 

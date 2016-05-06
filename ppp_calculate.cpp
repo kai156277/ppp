@@ -103,6 +103,10 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
         epoch.second = ofile.satellite_file[i].second;
         epoch.GPSW = ofile.satellite_file[i].GPSW;
         epoch.GPSS = ofile.satellite_file[i].GPSS;
+        if(epoch.hour == 2 && epoch.minute == 34)
+        {
+            int j  = 0;
+        }
 
         GC_Time station_GC;
         station_GC.setGC_Time(epoch.year,epoch.month,epoch.day,epoch.hour,epoch.minute,epoch.second);
@@ -271,9 +275,13 @@ void ppp_calculate::ppp_spp(const o_file &ofile,const sp3_file &sp3file,const cl
             }
         }
         epoch.sate_number = epoch.sate_info.size();
-        std::sort(epoch.PRN.begin(),epoch.PRN.end());
-        std::sort(epoch.sate_info.begin(),epoch.sate_info.end(),cmp);
-        ppp.file.push_back(epoch);
+        if(epoch.sate_number >=6 )
+        {
+            std::sort(epoch.PRN.begin(),epoch.PRN.end());
+            std::sort(epoch.sate_info.begin(),epoch.sate_info.end(),cmp);
+            ppp.file.push_back(epoch);
+        }
+
     }
 }
 
